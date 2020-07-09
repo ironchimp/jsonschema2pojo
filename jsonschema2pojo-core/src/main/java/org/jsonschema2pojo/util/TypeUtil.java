@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import japa.parser.ast.body.FieldDeclaration;
 import japa.parser.ast.type.ClassOrInterfaceType;
 import japa.parser.ast.type.ReferenceType;
 import japa.parser.ast.type.Type;
+import japa.parser.ast.type.WildcardType;
 
 public class TypeUtil {
 
@@ -36,25 +37,20 @@ public class TypeUtil {
 
         try {
             FieldDeclaration fieldDeclaration = (FieldDeclaration) JavaParser.parseBodyDeclaration(typeDefinition + " foo;");
-            ClassOrInterfaceType c = (ClassOrInterfaceType) fieldDeclaration.getType().getChildrenNodes().get(0);
+            ClassOrInterfaceType c = (ClassOrInterfaceType) ((ReferenceType) fieldDeclaration.getType()).getType();
 
             return buildClass(_package, c, 0);
         } catch (ParseException e) {
-            throw new GenerationException(e);
+            throw new GenerationException("Couldn't parse type: " + typeDefinition, e);
         }
     }
 
     private static JClass buildClass(JClassContainer _package, ClassOrInterfaceType c, int arrayCount) {
         final String packagePrefix = (c.getScope() != null) ? c.getScope().toString() + "." : "";
 
-        JClass _class;
-        try {
-            _class = _package.owner().ref(Thread.currentThread().getContextClassLoader().loadClass(packagePrefix + c.getName()));
-        } catch (ClassNotFoundException e) {
-            _class = _package.owner().ref(packagePrefix + c.getName());
-        }
+        JClass _class = _package.owner().ref(packagePrefix + c.getName());
 
-        for (int i=0; i<arrayCount; i++) {
+        for (int i = 0; i < arrayCount; i++) {
             _class = _class.array();
         }
 
@@ -62,8 +58,25 @@ public class TypeUtil {
         if (typeArgs != null && typeArgs.size() > 0) {
             JClass[] genericArgumentClasses = new JClass[typeArgs.size()];
 
-            for (int i=0; i<typeArgs.size(); i++) {
-                genericArgumentClasses[i] = buildClass(_package, (ClassOrInterfaceType) ((ReferenceType) typeArgs.get(i)).getType(), ((ReferenceType) typeArgs.get(i)).getArrayCount());
+            for (int i = 0; i < typeArgs.size(); i++) {
+                final Type type = typeArgs.get(i);
+
+                final JClass resolvedClass;
+                if (type instanceof WildcardType) {
+                    final WildcardType wildcardType = (WildcardType) type;
+                    if (wildcardType.getSuper() != null) {
+                        throw new IllegalArgumentException("\"? super \" declaration is not yet supported");
+                    } else if (wildcardType.getExtends() != null) {
+                        resolvedClass = buildClass(_package, (ClassOrInterfaceType) wildcardType.getExtends().getType(), 0).wildcard();
+                    } else {
+                        resolvedClass = _package.owner().ref(Object.class).wildcard();
+                    }
+                } else {
+                    final ReferenceType referenceType = (ReferenceType) type;
+                    resolvedClass = buildClass(_package, (ClassOrInterfaceType) referenceType.getType(), referenceType.getArrayCount());
+                }
+
+                genericArgumentClasses[i] = resolvedClass;
             }
 
             _class = _class.narrow(genericArgumentClasses);

@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,13 +83,13 @@ public class SchemaMapper {
      * @throws IOException
      *             if the schema content cannot be read
      */
-    public JType generate(JCodeModel codeModel, String className, String packageName, URL schemaUrl) throws IOException {
+    public JType generate(JCodeModel codeModel, String className, String packageName, URL schemaUrl) {
 
         JPackage jpackage = codeModel._package(packageName);
 
         ObjectNode schemaNode = readSchema(schemaUrl);
 
-        return ruleFactory.getSchemaRule().apply(className, schemaNode, jpackage, new Schema(null, schemaNode, schemaNode));
+        return ruleFactory.getSchemaRule().apply(className, schemaNode, null, jpackage, new Schema(null, schemaNode, null));
 
     }
 
@@ -97,10 +97,12 @@ public class SchemaMapper {
 
         switch (ruleFactory.getGenerationConfig().getSourceType()) {
             case JSONSCHEMA:
+            case YAMLSCHEMA:
                 ObjectNode schemaNode = NODE_FACTORY.objectNode();
                 schemaNode.put("$ref", schemaUrl.toString());
                 return schemaNode;
             case JSON:
+            case YAML:
                 return schemaGenerator.schemaFromExample(schemaUrl);
             default:
                 throw new IllegalArgumentException("Unrecognised source type: " + ruleFactory.getGenerationConfig().getSourceType());
@@ -115,8 +117,8 @@ public class SchemaMapper {
 
         JsonNode schemaNode = objectMapper().readTree(json);
 
-        return ruleFactory.getSchemaRule().apply(className, schemaNode, jpackage,
-                new Schema(schemaLocation, schemaNode, schemaNode));
+        return ruleFactory.getSchemaRule().apply(className, schemaNode, null, jpackage,
+                new Schema(schemaLocation, schemaNode, null));
     }
 
     public JType generate(JCodeModel codeModel, String className, String packageName, String json) throws IOException {
@@ -131,7 +133,7 @@ public class SchemaMapper {
             schemaNode = objectMapper().readTree(json);
         }
 
-        return ruleFactory.getSchemaRule().apply(className, schemaNode, jpackage, new Schema(null, schemaNode, schemaNode));
+        return ruleFactory.getSchemaRule().apply(className, schemaNode, null, jpackage, new Schema(null, schemaNode, null));
     }
 
     private ObjectMapper objectMapper() {

@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,7 @@
 
 package org.jsonschema2pojo.rules;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.util.StdDateFormat;
-import com.sun.codemodel.ClassType;
-import com.sun.codemodel.JClass;
-import com.sun.codemodel.JDefinedClass;
-import com.sun.codemodel.JExpr;
-import com.sun.codemodel.JExpression;
-import com.sun.codemodel.JFieldVar;
-import com.sun.codemodel.JInvocation;
-import com.sun.codemodel.JType;
+import static org.apache.commons.lang3.StringUtils.*;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -38,14 +28,27 @@ import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import static org.apache.commons.lang3.StringUtils.*;
+
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalTime;
 import org.jsonschema2pojo.Schema;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.util.StdDateFormat;
+import com.sun.codemodel.ClassType;
+import com.sun.codemodel.JClass;
+import com.sun.codemodel.JDefinedClass;
+import com.sun.codemodel.JExpr;
+import com.sun.codemodel.JExpression;
+import com.sun.codemodel.JFieldVar;
+import com.sun.codemodel.JInvocation;
+import com.sun.codemodel.JType;
+import scala.annotation.meta.field;
+
 /**
- * Applies the "enum" schema rule.
+ * Applies the "default" schema rule.
  *
  * @see <a
  *      href="http://tools.ietf.org/html/draft-zyp-json-schema-03#section-5.20">http://tools.ietf.org/html/draft-zyp-json-schema-03#section-5.20</a>
@@ -79,7 +82,7 @@ public class DefaultRule implements Rule<JFieldVar, JFieldVar> {
      * @return field, which will have an init expression is appropriate
      */
     @Override
-    public JFieldVar apply(String nodeName, JsonNode node, JFieldVar field, Schema currentSchema) {
+    public JFieldVar apply(String nodeName, JsonNode node, JsonNode parent, JFieldVar field, Schema currentSchema) {
 
         boolean defaultPresent = node != null && isNotEmpty(node.asText());
 
@@ -103,66 +106,65 @@ public class DefaultRule implements Rule<JFieldVar, JFieldVar> {
         return field;
     }
 
-    private JExpression getDefaultValue(JType fieldType, JsonNode node) {
+    static JExpression getDefaultValue(JType fieldType, JsonNode node) {
+        return getDefaultValue(fieldType, node.asText());
+    }
+
+    static JExpression getDefaultValue(JType fieldType, String value) {
 
         fieldType = fieldType.unboxify();
 
         if (fieldType.fullName().equals(String.class.getName())) {
-            return JExpr.lit(node.asText());
+            return JExpr.lit(value);
 
         } else if (fieldType.fullName().equals(int.class.getName())) {
-            return JExpr.lit(Integer.parseInt(node.asText()));
+            return JExpr.lit(Integer.parseInt(value));
 
         } else if (fieldType.fullName().equals(BigInteger.class.getName())) {
-            return JExpr._new(fieldType).arg(JExpr.lit(node.asText()));
+            return JExpr._new(fieldType).arg(JExpr.lit(value));
 
         } else if (fieldType.fullName().equals(double.class.getName())) {
-            return JExpr.lit(Double.parseDouble(node.asText()));
+            return JExpr.lit(Double.parseDouble(value));
 
         } else if (fieldType.fullName().equals(BigDecimal.class.getName())) {
-            return JExpr._new(fieldType).arg(JExpr.lit(node.asText()));
+            return JExpr._new(fieldType).arg(JExpr.lit(value));
 
         } else if (fieldType.fullName().equals(boolean.class.getName())) {
-            return JExpr.lit(Boolean.parseBoolean(node.asText()));
+            return JExpr.lit(Boolean.parseBoolean(value));
 
-        } else if (fieldType.fullName().equals(getDateTimeType().getName())) {
-            long millisecs = parseDateToMillisecs(node.asText());
+        } else if (fieldType.fullName().equals(DateTime.class.getName()) || fieldType.fullName().equals(Date.class.getName())) {
+            long millisecs = parseDateToMillisecs(value);
 
             JInvocation newDateTime = JExpr._new(fieldType);
             newDateTime.arg(JExpr.lit(millisecs));
 
             return newDateTime;
 
-        } else if (fieldType.fullName().equals(LocalDate.class.getName()) ||
-                   fieldType.fullName().equals(LocalTime.class.getName())) {
+        } else if (fieldType.fullName().equals(LocalDate.class.getName()) || fieldType.fullName().equals(LocalTime.class.getName())) {
 
             JInvocation stringParseableTypeInstance = JExpr._new(fieldType);
-            stringParseableTypeInstance.arg(JExpr.lit(node.asText()));
+            stringParseableTypeInstance.arg(JExpr.lit(value));
             return stringParseableTypeInstance;
 
         } else if (fieldType.fullName().equals(long.class.getName())) {
-            return JExpr.lit(Long.parseLong(node.asText()));
+            return JExpr.lit(Long.parseLong(value));
 
         } else if (fieldType.fullName().equals(float.class.getName())) {
-            return JExpr.lit(Float.parseFloat(node.asText()));
+            return JExpr.lit(Float.parseFloat(value));
 
         } else if (fieldType.fullName().equals(URI.class.getName())) {
             JInvocation invokeCreate = fieldType.owner().ref(URI.class).staticInvoke("create");
-            return invokeCreate.arg(JExpr.lit(node.asText()));
+            return invokeCreate.arg(JExpr.lit(value));
 
         } else if (fieldType instanceof JDefinedClass && ((JDefinedClass) fieldType).getClassType().equals(ClassType.ENUM)) {
 
-            return getDefaultEnum(fieldType, node);
+            return getDefaultEnum(fieldType, value);
 
         } else {
             return JExpr._null();
 
         }
 
-    }
-
-    private Class<?> getDateTimeType() {
-        return ruleFactory.getGenerationConfig().isUseJodaDates() ? DateTime.class : Date.class;
     }
 
     /**
@@ -243,16 +245,20 @@ public class DefaultRule implements Rule<JFieldVar, JFieldVar> {
 
     }
 
-    private JExpression getDefaultEnum(JType fieldType, JsonNode node) {
+    /**
+     * @see EnumRule
+     */
+    private static JExpression getDefaultEnum(JType fieldType, String value) {
 
-        JInvocation invokeFromValue = ((JClass) fieldType).staticInvoke("fromValue");
-        invokeFromValue.arg(node.asText());
+        JDefinedClass enumClass = (JDefinedClass) fieldType;
+        JType backingType = enumClass.fields().get("value").type();
+        JInvocation invokeFromValue = enumClass.staticInvoke("fromValue");
+        invokeFromValue.arg(getDefaultValue(backingType, value));
 
         return invokeFromValue;
-
     }
 
-    private long parseDateToMillisecs(String valueAsText) {
+    private static long parseDateToMillisecs(String valueAsText) {
 
         try {
             return Long.parseLong(valueAsText);

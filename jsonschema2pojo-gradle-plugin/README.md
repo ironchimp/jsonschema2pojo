@@ -1,3 +1,12 @@
+# DEPRECATED
+
+Gradle jsonschema2pojo plugin in current repo is deprecated. No new development will be taking place.
+
+Existing version will _(of course)_ continue to function with Gradle < **7.0**.
+
+New applications should use new official Gradle [jsonschema2pojo](https://github.com/eirnym/js2p-gradle) plugin 
+from a separate repo, which is compatible with Gradle **5.6+**.
+
 # Gradle jsonschema2pojo plugin
 
 [jsonschema2pojo](http://www.jsonschema2pojo.org) generates a Java representation of your
@@ -33,18 +42,22 @@ repositories {
 }
 
 dependencies {
-  // Required if generating equals, hashCode, or toString methods
-  compile 'commons-lang:commons-lang:2.6'
   // Required if generating JSR-303 annotations
   compile 'javax.validation:validation-api:1.1.0.CR2'
   // Required if generating Jackson 2 annotations
-  compile 'com.fasterxml.jackson.core:jackson-databind:2.1.4'
+  compile 'com.fasterxml.jackson.core:jackson-databind:2.9.7'
   // Required if generating JodaTime data types
   compile 'joda-time:joda-time:2.2'
 }
 
 // Each configuration is set to the default value
 jsonSchema2Pojo {
+
+  // Whether to allow 'additional' properties to be supported in classes by adding a map to
+  // hold these. This is true by default, meaning that the schema rule 'additionalProperties'
+  // controls whether the map is added. Set this to false to globabally disable additional properties.
+  includeAdditionalProperties = false
+
   // Whether to generate builder-style methods of the form withXxx(value) (that return this),
   // alongside the standard, void-return setters.
   generateBuilders = false
@@ -118,8 +131,11 @@ jsonSchema2Pojo {
   includeJsr303Annotations = false
 
   // The type of input documents that will be read. Supported values:
-  //  - jsonschema (schema documents, containing formal rules that describe the structure of json data)
-  //  - json (documents that represent an example of the kind of json data that the generated Java types
+  //  - jsonschema (schema documents, containing formal rules that describe the structure of JSON data)
+  //  - json (documents that represent an example of the kind of JSON data that the generated Java types
+  //          will be mapped to)
+  //  - yamlschema (JSON schema documents, represented as YAML)
+  //  - yaml (documents that represent an example of the kind of YAML (or JSON) data that the generated Java types
   //          will be mapped to)
   sourceType = 'jsonschema'
 
@@ -136,9 +152,13 @@ jsonSchema2Pojo {
   // date type fields to generated Java types.
   useJodaDates = false
 
-  // Whether to use commons-lang 3.x imports instead of commons-lang 2.x imports when adding equals, 
-  // hashCode and toString methods.
-  useCommonsLang3 = false
+  // Whether to add JsonFormat annotations when using Jackson 2 that cause format "date", "time", and "date-time"
+  // fields to be formatted as yyyy-MM-dd, HH:mm:ss.SSS and yyyy-MM-dd'T'HH:mm:ss.SSSZ respectively. To customize these
+  // patterns, use customDatePattern, customTimePattern, and customDateTimePattern config options or add these inside a 
+  // schema to affect an individual field
+  formatDateTimes = true
+  formatDates = true
+  formatTimes = true
   
   // Whether to initialize Set and List fields as empty collections, or leave them as null.
   initializeCollections = true
@@ -161,11 +181,29 @@ jsonSchema2Pojo {
   // Whether to make the generated types Serializable
   serializable = false
 
-  // Whether to include getters/setters or to omit these accessor methods and create public fields instead.
-  includeAccessors = true
+  // Whether to include getters or to omit these accessor methods and create public fields instead.
+  includeGetters = false
+
+  // Whether to include setters or to omit these accessor methods and create public fields instead.
+  includeSetters = false
 
   // Whether to include dynamic getters, setters, and builders or to omit these methods.
   includeDynamicAccessors = false
+
+  // Whether to include dynamic getters or to omit these methods.
+  includeDynamicGetters = false
+
+  // Whether to include dynamic setters or to omit these methods.
+  includeDynamicSetters = false
+
+  // Whether to include dynamic builders or to omit these methods.
+  includeDynamicBuilders = false
+
+  // What type to use instead of string when adding string properties of format "date" to Java types
+  dateType = "java.time.LocalDate"
+
+  // What type to use instead of string when adding string properties of format "date-time" to Java types
+  dateTimeType = "java.time.LocalDateTime"
 }
 ```
 

@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,7 +84,7 @@ public class TypeIT {
     }
 
     @Test
-    public void arrayTypeProducesCollection() throws NoSuchMethodException, ClassNotFoundException {
+    public void arrayTypeProducesCollection() throws NoSuchMethodException {
 
         Method getterMethod = classWithManyTypes.getMethod("getArrayProperty");
 

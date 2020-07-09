@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -140,12 +140,19 @@ public class ArrayIT {
     @Test
     public void arrayItemTypeIsSingularFormOfPropertyName() throws NoSuchMethodException {
 
-        Method getterMethod = classWithArrayProperties.getMethod("getThings");
-
         // assert List<Thing>
+        Method getterMethod = classWithArrayProperties.getMethod("getThings");
         Class<?> genericType = (Class<?>) ((ParameterizedType) getterMethod.getGenericReturnType()).getActualTypeArguments()[0];
         assertThat(genericType.getName(), is("com.example.Thing"));
 
+        // assert List<Thing>
+        getterMethod = classWithArrayProperties.getMethod("getWidgetList");
+        genericType = (Class<?>) ((ParameterizedType) getterMethod.getGenericReturnType()).getActualTypeArguments()[0];
+        assertThat(genericType.getName(), is("com.example.Widget"));
+
+        getterMethod = classWithArrayProperties.getMethod("getAnimalList");
+        genericType = (Class<?>) ((ParameterizedType) getterMethod.getGenericReturnType()).getActualTypeArguments()[0];
+        assertThat(genericType.getName(), is("com.example.Animal"));
     }
 
     @Test
@@ -165,7 +172,7 @@ public class ArrayIT {
      *      76</a>
      */
     @Test
-    public void propertiesThatReferenceAnArraySchemaAlwaysHaveCorrectCollectionType() throws NoSuchMethodException, ClassNotFoundException {
+    public void propertiesThatReferenceAnArraySchemaAlwaysHaveCorrectCollectionType() throws NoSuchMethodException {
 
         Method array1GetterMethod = classWithArrayProperties.getMethod("getRefToArray1");
 

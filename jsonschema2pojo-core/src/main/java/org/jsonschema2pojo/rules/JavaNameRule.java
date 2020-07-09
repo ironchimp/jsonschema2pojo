@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import com.sun.codemodel.JDocCommentable;
 public class JavaNameRule implements Rule<JDocCommentable, JDocComment> {
 
     @Override
-    public JDocComment apply(String nodeName, JsonNode node, JDocCommentable generatableType, Schema currentSchema) {
+    public JDocComment apply(String nodeName, JsonNode node, JsonNode parent, JDocCommentable generatableType, Schema currentSchema) {
         JDocComment javaDoc = generatableType.javadoc();
 
         javaDoc.append(String.format("%nCorresponds to the \"%s\" property.", nodeName));

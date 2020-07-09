@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,22 @@
 
 package org.jsonschema2pojo.integration.config;
 
+import static org.jsonschema2pojo.integration.util.CodeGenerationHelper.*;
+
 import org.jsonschema2pojo.integration.util.Jsonschema2PojoRule;
 import org.junit.Rule;
 import org.junit.Test;
-
-import static org.jsonschema2pojo.integration.util.CodeGenerationHelper.config;
 
 public class RefFragmentPathDelimitersIT {
 
     @Rule public Jsonschema2PojoRule schemaRule = new Jsonschema2PojoRule();
 
     @Test
-    public void refFragmentPathDelimitersUsedInAPropertyIsReadSuccessfully() throws ClassNotFoundException, SecurityException, NoSuchMethodException {
+    public void refFragmentPathDelimitersUsedInAPropertyIsReadSuccessfully() throws ClassNotFoundException, SecurityException {
 
         ClassLoader resultsClassLoader = schemaRule.generateAndCompile("/schema/properties/nonStandardRef.json", "com.example",
                 config("refFragmentPathDelimiters", "#/"));
 
-        resultsClassLoader.loadClass("com.example.Foo");
+        resultsClassLoader.loadClass("com.example.NonStandardRef");
     }
 }

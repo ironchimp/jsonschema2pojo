@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.jsonschema2pojo;
 
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 import java.io.IOException;
@@ -56,7 +55,7 @@ public class SchemaMapperTest {
         ArgumentCaptor<JPackage> capturePackage = ArgumentCaptor.forClass(JPackage.class);
         ArgumentCaptor<JsonNode> captureNode = ArgumentCaptor.forClass(JsonNode.class);
 
-        verify(mockSchemaRule).apply(eq("Address"), captureNode.capture(), capturePackage.capture(), Mockito.isA(Schema.class));
+        verify(mockSchemaRule).apply(eq("Address"), captureNode.capture(), eq(null), capturePackage.capture(), Mockito.isA(Schema.class));
 
         assertThat(capturePackage.getValue().name(), is("com.example.package"));
         assertThat(captureNode.getValue(), is(notNullValue()));
@@ -86,7 +85,7 @@ public class SchemaMapperTest {
 
         ArgumentCaptor<JPackage> capturePackage = ArgumentCaptor.forClass(JPackage.class);
 
-        verify(mockSchemaRule).apply(eq("Address"), eq(schemaNode), capturePackage.capture(), Mockito.isA(Schema.class));
+        verify(mockSchemaRule).apply(eq("Address"), eq(schemaNode), eq(null), capturePackage.capture(), Mockito.isA(Schema.class));
 
         assertThat(capturePackage.getValue().name(), is("com.example.package"));
 
@@ -115,7 +114,7 @@ public class SchemaMapperTest {
 
         ArgumentCaptor<JPackage> capturePackage = ArgumentCaptor.forClass(JPackage.class);
 
-        verify(mockSchemaRule).apply(eq("User"), eq(schemaNode), capturePackage.capture(), Mockito.isA(Schema.class));
+        verify(mockSchemaRule).apply(eq("User"), eq(schemaNode), eq(null), capturePackage.capture(), Mockito.isA(Schema.class));
 
         assertThat(capturePackage.getValue().name(), is("com.example.package"));
     }
@@ -136,7 +135,7 @@ public class SchemaMapperTest {
         ArgumentCaptor<JPackage> capturePackage = ArgumentCaptor.forClass(JPackage.class);
         ArgumentCaptor<JsonNode> captureNode = ArgumentCaptor.forClass(JsonNode.class);
 
-        verify(mockSchemaRule).apply(eq("Address"), captureNode.capture(), capturePackage.capture(), Mockito.isA(Schema.class));
+        verify(mockSchemaRule).apply(eq("Address"), captureNode.capture(), eq(null), capturePackage.capture(), Mockito.isA(Schema.class));
 
         assertThat(capturePackage.getValue().name(), is("com.example.package"));
         assertThat(captureNode.getValue(), is(notNullValue()));

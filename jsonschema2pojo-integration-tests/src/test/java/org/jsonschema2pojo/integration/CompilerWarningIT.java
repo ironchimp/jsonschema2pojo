@@ -1,5 +1,5 @@
 /**
- * Copyright ¬© 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package org.jsonschema2pojo.integration;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -68,14 +67,14 @@ public class CompilerWarningIT {
       {
         "includeAccessorsWithSystemJavaCompiler",
         systemJavaCompiler,
-        config("includeDynamicAccessors", true),
+        config("includeDynamicAccessors", true, "includeDynamicGetters", true, "includeDynamicSetters", true, "includeDynamicBuilders", true),
         "/schema/dynamic/parentType.json",
         Matchers.empty()
       },
       {
         "includeAccessorsWithEclipseCompiler",
         eclipseCompiler,
-        config("includeDynamicAccessors", true),
+        config("includeDynamicAccessors", true, "includeDynamicGetters", true, "includeDynamicSetters", true, "includeDynamicBuilders", true),
         "/schema/dynamic/parentType.json",
         onlyCastExceptions()
       }
@@ -97,7 +96,7 @@ public class CompilerWarningIT {
   @Test
   public void checkWarnings() {
     schemaRule.generate(schema, "com.example", config);
-    schemaRule.compile(compiler, new NullWriter(), new ArrayList<File>(), config);
+    schemaRule.compile(compiler, new NullWriter(), new ArrayList<>(), config);
     
     List<Diagnostic<? extends JavaFileObject>> warnings = warnings(schemaRule.getDiagnostics());
     
@@ -105,7 +104,7 @@ public class CompilerWarningIT {
   }
 
   public static List<Diagnostic<? extends JavaFileObject>> warnings(List<Diagnostic<? extends JavaFileObject>> all) {
-    List<Diagnostic<? extends JavaFileObject>> warnings = new ArrayList<Diagnostic<? extends JavaFileObject>>();
+    List<Diagnostic<? extends JavaFileObject>> warnings = new ArrayList<>();
     for( Diagnostic<? extends JavaFileObject> entry : all ) {
       if( entry.getKind() == Kind.WARNING ) {
         warnings.add(entry);

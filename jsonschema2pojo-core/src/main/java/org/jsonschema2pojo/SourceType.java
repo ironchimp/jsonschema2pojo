@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,5 +32,16 @@ public enum SourceType {
      * JSON documents, that represent an example of the kind of JSON data that
      * the generated Java types will be mapped to.
      */
-    JSON
+    JSON,
+
+    /**
+     * JSON-schema documents, represented as YAML
+     */
+    YAMLSCHEMA,
+
+    /**
+     * YAML documents, that represent an example of the kind of YAML (or JSON) data that
+     * the generated Java types will be mapped to.
+     */
+    YAML
 }

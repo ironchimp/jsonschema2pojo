@@ -1,5 +1,5 @@
 /**
- * Copyright ¬© 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.net.QuotedPrintableCodec;
@@ -194,7 +195,7 @@ public class MediaIT {
                 new ObjectMapper(),
                 "anyBinaryEncoding",
                 "\"=E3=82=A8=E3=83=B3=E3=82=B3=E3=83=BC=E3=83=89=E3=81=95=E3=82=8C=E3=81=9F=E6=96=87=E5=AD=97=E5=88=97\" is Japanese for \"encoded string\"",
-                "\"エンコードされた文字列\" is Japanese for \"encoded string\"".getBytes("UTF-8"));
+                "\"エンコードされた文字列\" is Japanese for \"encoded string\"".getBytes(StandardCharsets.UTF_8));
     }
 
     @Test
@@ -206,7 +207,7 @@ public class MediaIT {
                 new ObjectMapper(),
                 "anyBinaryEncoding",
                 "\"=E3=82=A8=E3=83=B3=E3=82=B3=E3=83=BC=E3=83=89=E3=81=95=E3=82=8C=E3=81=9F=E6=96=87=E5=AD=97=E5=88=97\" is Japanese for \"encoded string\"",
-                "\"エンコードされた文字列\" is Japanese for \"encoded string\"".getBytes("UTF-8"));
+                "\"エンコードされた文字列\" is Japanese for \"encoded string\"".getBytes(StandardCharsets.UTF_8));
     }
 
     /**
@@ -283,8 +284,8 @@ public class MediaIT {
         }
 
         @Override
-        public void serialize(byte[] value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonGenerationException {
-            jgen.writeString(new String(codec.encode(value), "UTF-8"));
+        public void serialize(byte[] value, JsonGenerator jgen, SerializerProvider provider) throws IOException {
+            jgen.writeString(new String(codec.encode(value), StandardCharsets.UTF_8));
         }
 
     }
@@ -300,9 +301,9 @@ public class MediaIT {
         }
 
         @Override
-        public byte[] deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+        public byte[] deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
             try {
-                return codec.decode(jp.getText().getBytes("UTF-8"));
+                return codec.decode(jp.getText().getBytes(StandardCharsets.UTF_8));
             } catch (DecoderException e) {
                 throw new IOException(format("could not decode quoted string in %s", jp.getCurrentName()), e);
             }

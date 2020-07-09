@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ public class PropertiesRule implements Rule<JDefinedClass, JDefinedClass> {
      * @return the given jclass
      */
     @Override
-    public JDefinedClass apply(String nodeName, JsonNode node, JDefinedClass jclass, Schema schema) {
+    public JDefinedClass apply(String nodeName, JsonNode node, JsonNode parent, JDefinedClass jclass, Schema schema) {
         if (node == null) {
             node = JsonNodeFactory.instance.objectNode();
         }
@@ -67,7 +67,7 @@ public class PropertiesRule implements Rule<JDefinedClass, JDefinedClass> {
         for (Iterator<String> properties = node.fieldNames(); properties.hasNext(); ) {
             String property = properties.next();
 
-            ruleFactory.getPropertyRule().apply(property, node.get(property), jclass, schema);
+            ruleFactory.getPropertyRule().apply(property, node.get(property), node, jclass, schema);
         }
 
         if (ruleFactory.getGenerationConfig().isGenerateBuilders() && !jclass._extends().name().equals("Object")) {
@@ -93,6 +93,7 @@ public class PropertiesRule implements Rule<JDefinedClass, JDefinedClass> {
 
     private void addOverrideBuilder(JDefinedClass thisJDefinedClass, JMethod parentBuilder, JVar parentParam) {
 
+        // Confirm that this class doesn't already have a builder method matching the same name as the parentBuilder
         if (thisJDefinedClass.getMethod(parentBuilder.name(), new JType[] {parentParam.type()}) == null) {
 
             JMethod builder = thisJDefinedClass.method(parentBuilder.mods().getValue(), thisJDefinedClass, parentBuilder.name());

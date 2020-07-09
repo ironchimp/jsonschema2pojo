@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ public class RequiredIT {
     private static JavaClass classWithRequired;
 
     @BeforeClass
-    public static void generateClasses() throws ClassNotFoundException, IOException {
+    public static void generateClasses() throws IOException {
 
         classSchemaRule.generateAndCompile("/schema/required/required.json", "com.example");
         File generatedJavaFile = classSchemaRule.generated("com/example/Required.java");
@@ -51,7 +51,7 @@ public class RequiredIT {
     }
 
     @Test
-    public void requiredAppearsInFieldJavadoc() throws IOException {
+    public void requiredAppearsInFieldJavadoc() {
 
         JavaField javaField = classWithRequired.getFieldByName("requiredProperty");
         String javaDocComment = javaField.getComment();
@@ -61,7 +61,7 @@ public class RequiredIT {
     }
 
     @Test
-    public void requiredAppearsInGetterJavadoc() throws IOException {
+    public void requiredAppearsInGetterJavadoc() {
 
         JavaMethod javaMethod = classWithRequired.getMethodBySignature("getRequiredProperty", new Type[] {});
         String javaDocComment = javaMethod.getComment();
@@ -71,7 +71,7 @@ public class RequiredIT {
     }
 
     @Test
-    public void requiredAppearsInSetterJavadoc() throws IOException {
+    public void requiredAppearsInSetterJavadoc() {
 
         JavaMethod javaMethod = classWithRequired.getMethodBySignature("setRequiredProperty", new Type[] { new Type("java.lang.String") });
         String javaDocComment = javaMethod.getComment();
@@ -81,7 +81,7 @@ public class RequiredIT {
     }
 
     @Test
-    public void nonRequiredFiedHasNoRequiredText() throws IOException {
+    public void nonRequiredFiedHasNoRequiredText() {
 
         JavaField javaField = classWithRequired.getFieldByName("nonRequiredProperty");
         String javaDocComment = javaField.getComment();
@@ -91,7 +91,7 @@ public class RequiredIT {
     }
 
     @Test
-    public void notRequiredIsTheDefault() throws IOException {
+    public void notRequiredIsTheDefault() {
 
         JavaField javaField = classWithRequired.getFieldByName("defaultNotRequiredProperty");
         String javaDocComment = javaField.getComment();

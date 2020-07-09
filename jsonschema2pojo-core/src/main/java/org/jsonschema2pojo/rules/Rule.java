@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,8 @@ public interface Rule<T, R> {
      *            the name of the JSON schema node
      * @param node
      *            the JSON schema node that has caused this rule to be applied
+     * @param parent
+     *            the JSON parent of {@code node}
      * @param generatableType
      *            A code generation construct to which this rule should be
      *            applied
@@ -48,6 +50,6 @@ public interface Rule<T, R> {
      * @return the newly generated source code item that was added/created as a
      *         result of executing this rule
      */
-    R apply(String nodeName, JsonNode node, T generatableType, Schema currentSchema);
+    R apply(String nodeName, JsonNode node, JsonNode parent, T generatableType, Schema currentSchema);
 
 }

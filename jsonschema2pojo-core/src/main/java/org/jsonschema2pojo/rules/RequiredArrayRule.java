@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,13 +50,16 @@ public class RequiredArrayRule implements Rule<JDefinedClass, JDefinedClass> {
     }
 
     @Override
-    public JDefinedClass apply(String nodeName, JsonNode node, JDefinedClass jclass, Schema schema) {
-        List<String> requiredFieldMethods = new ArrayList<String>();
+    public JDefinedClass apply(String nodeName, JsonNode node, JsonNode parent, JDefinedClass jclass, Schema schema) {
+        List<String> requiredFieldMethods = new ArrayList<>();
 
         JsonNode properties = schema.getContent().get("properties");
 
         for (Iterator<JsonNode> iterator = node.elements(); iterator.hasNext(); ) {
             String requiredArrayItem = iterator.next().asText();
+            if (requiredArrayItem.isEmpty()) {
+                continue;
+            }
 
             JsonNode propertyNode = null;
 

@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,7 +71,7 @@ public class AdditionalPropertiesIT {
     @SuppressWarnings("unchecked")
     public void jacksonCanDeserializeOurAdditionalPropertiesWithoutIncludeAccessors() throws ClassNotFoundException, IOException, SecurityException, NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
 
-        ClassLoader resultsClassLoader = schemaRule.generateAndCompile("/schema/additionalProperties/defaultAdditionalProperties.json", "com.example", config("includeAccessors", false));
+        ClassLoader resultsClassLoader = schemaRule.generateAndCompile("/schema/additionalProperties/defaultAdditionalProperties.json", "com.example", config("includeGetters", false));
 
         Class<?> classWithAdditionalProperties = resultsClassLoader.loadClass("com.example.DefaultAdditionalProperties");
 
@@ -88,7 +88,7 @@ public class AdditionalPropertiesIT {
     }
 
     @Test
-    public void jacksonCanSerializeOurAdditionalProperties() throws ClassNotFoundException, IOException, SecurityException, NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    public void jacksonCanSerializeOurAdditionalProperties() throws ClassNotFoundException, IOException, SecurityException, IllegalArgumentException {
 
         ClassLoader resultsClassLoader = schemaRule.generateAndCompile("/schema/additionalProperties/defaultAdditionalProperties.json", "com.example");
 
@@ -103,9 +103,9 @@ public class AdditionalPropertiesIT {
     }
 
     @Test
-    public void jacksonCanSerializeOurAdditionalPropertiesWithoutIncludeAccessors() throws ClassNotFoundException, IOException, SecurityException, NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    public void jacksonCanSerializeOurAdditionalPropertiesWithoutIncludeAccessors() throws ClassNotFoundException, IOException, SecurityException, IllegalArgumentException {
 
-        ClassLoader resultsClassLoader = schemaRule.generateAndCompile("/schema/additionalProperties/defaultAdditionalProperties.json", "com.example", config("includeAccessors", false));
+        ClassLoader resultsClassLoader = schemaRule.generateAndCompile("/schema/additionalProperties/defaultAdditionalProperties.json", "com.example", config("includeGetters", false));
 
         Class<?> classWithAdditionalProperties = resultsClassLoader.loadClass("com.example.DefaultAdditionalProperties");
         String jsonWithAdditionalProperties = "{\"a\":1, \"b\":2};";
@@ -118,7 +118,7 @@ public class AdditionalPropertiesIT {
     }
 
     @Test(expected = UnrecognizedPropertyException.class)
-    public void additionalPropertiesAreNotDeserializableWhenDisallowed() throws ClassNotFoundException, SecurityException, NoSuchMethodException, IOException {
+    public void additionalPropertiesAreNotDeserializableWhenDisallowed() throws ClassNotFoundException, SecurityException, IOException {
 
         ClassLoader resultsClassLoader = schemaRule.generateAndCompile("/schema/additionalProperties/noAdditionalProperties.json", "com.example");
 
@@ -129,7 +129,7 @@ public class AdditionalPropertiesIT {
     }
 
     @Test(expected = UnrecognizedPropertyException.class)
-    public void additionalPropertiesAreNotDeserializableWhenDisabledGlobally() throws ClassNotFoundException, SecurityException, NoSuchMethodException, IOException {
+    public void additionalPropertiesAreNotDeserializableWhenDisabledGlobally() throws ClassNotFoundException, SecurityException, IOException {
 
         ClassLoader resultsClassLoader = schemaRule.generateAndCompile("/schema/additionalProperties/defaultAdditionalProperties.json", "com.example", config("includeAdditionalProperties", false));
 
@@ -252,7 +252,7 @@ public class AdditionalPropertiesIT {
     }
 
     @Test
-    public void additionalPropertiesWorkWithAllVisibility() throws ClassNotFoundException, SecurityException, NoSuchMethodException, JsonProcessingException, IOException {
+    public void additionalPropertiesWorkWithAllVisibility() throws ClassNotFoundException, SecurityException, IOException {
         mapper.configure(MapperFeature.AUTO_DETECT_GETTERS, false);
         mapper.configure(MapperFeature.AUTO_DETECT_SETTERS, false);
         mapper.setVisibility(mapper.getVisibilityChecker().with(Visibility.ANY));

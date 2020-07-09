@@ -1,5 +1,5 @@
 /**
- * Copyright ¬© 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -107,7 +107,7 @@ public class Jsonschema2PojoRule implements TestRule {
             @Override
             public void evaluate() throws Throwable {
                 active = true;
-                diagnostics = new ArrayList<Diagnostic<? extends JavaFileObject>>();
+                diagnostics = new ArrayList<>();
                 boolean captureDiagnosticsStart = captureDiagnostics;
                 try {
                     File testRoot = methodNameDir(classNameDir(rootDirectory(), description.getClassName()),
@@ -206,11 +206,11 @@ public class Jsonschema2PojoRule implements TestRule {
     }
 
     private static List<File> emptyClasspath() {
-        return new ArrayList<File>();
+        return new ArrayList<>();
     }
 
     private static Map<String, Object> emptyConfig() {
-        return new HashMap<String, Object>();
+        return new HashMap<>();
     }
 
     private static URL schemaUrl(String schema) {
@@ -223,7 +223,7 @@ public class Jsonschema2PojoRule implements TestRule {
         return new File("target" + File.separator + "jsonschema2pojo");
     }
 
-    static File classNameDir(File baseDir, String className) throws IOException {
+    static File classNameDir(File baseDir, String className) {
         return new File(baseDir, classNameToPath(className));
     }
 
@@ -275,7 +275,7 @@ public class Jsonschema2PojoRule implements TestRule {
 
     static String classNameToPath(String className) {
         return className
-                .replaceAll("\\A(?:.*\\.)?([^\\.]*)\\Z", "$1")
+                .replaceAll("\\A(?:.*\\.)?([^.]*)\\Z", "$1")
                 .replaceAll("\\$", Pattern.quote(File.separator));
     }
 

@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import org.jsonschema2pojo.Annotator;
 import org.jsonschema2pojo.DefaultGenerationConfig;
 import org.jsonschema2pojo.GenerationConfig;
 import org.jsonschema2pojo.Jackson2Annotator;
+import org.jsonschema2pojo.RuleLogger;
 import org.jsonschema2pojo.SchemaStore;
 import org.jsonschema2pojo.util.NameHelper;
 import org.jsonschema2pojo.util.ParcelableHelper;
@@ -32,13 +33,17 @@ import com.sun.codemodel.JDocCommentable;
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JPackage;
 import com.sun.codemodel.JType;
+import org.jsonschema2pojo.util.ReflectionHelper;
+import sun.reflect.Reflection;
 
 /**
  * Provides factory/creation methods for the code generation rules.
  */
 public class RuleFactory {
 
+    private RuleLogger logger;
     private NameHelper nameHelper;
+    private ReflectionHelper reflectionHelper;
     private GenerationConfig generationConfig;
     private Annotator annotator;
     private SchemaStore schemaStore;
@@ -61,6 +66,7 @@ public class RuleFactory {
         this.annotator = annotator;
         this.schemaStore = schemaStore;
         this.nameHelper = new NameHelper(generationConfig);
+        this.reflectionHelper = new ReflectionHelper(this);
     }
 
     /**
@@ -119,7 +125,17 @@ public class RuleFactory {
      * @return a schema rule that can handle the "object" declaration.
      */
     public Rule<JPackage, JType> getObjectRule() {
-        return new ObjectRule(this, new ParcelableHelper());
+        return new ObjectRule(this, new ParcelableHelper(), reflectionHelper);
+    }
+
+    /**
+     * Provides a rule instance that should be applied to add constructors to a generated type
+     *
+     * @return a schema rule that can handle the "object" declaration.
+     */
+    public Rule<JDefinedClass, JDefinedClass> getConstructorRule()
+    {
+        return new ConstructorRule(this, reflectionHelper);
     }
 
     /**
@@ -259,6 +275,17 @@ public class RuleFactory {
     }
 
     /**
+     * Provides a rule instance that should be applied when a property
+     * declaration is found in the schema, to assign he digits validation
+     * on that property.
+     *
+     * @return a schema rule that can handle the "digits" declaration.
+     */
+    public Rule<JFieldVar, JFieldVar> getDigitsRule() {
+        return new DigitsRule(this);
+    }
+
+    /**
      * Provides a rule instance that should be applied when a "pattern"
      * declaration is found in the schema for a property.
      *
@@ -326,6 +353,25 @@ public class RuleFactory {
     }
 
     /**
+     * Provides a rule logger that abstracts the logging method of invoking frameworks
+     *
+     * @return a logger interface to native logging framework
+     */
+    public RuleLogger getLogger() {
+        return logger;
+    }
+
+    /**
+     * The logger the factory will provide to rules.
+     *
+     * @param logger
+     *            the logger
+     */
+    public void setLogger(RuleLogger logger) {
+        this.logger = logger;
+    }
+
+    /**
      * Gets the store that finds and saves JSON schemas
      *
      * @return a store that finds and caches schema objects during type
@@ -356,6 +402,11 @@ public class RuleFactory {
         return nameHelper;
     }
 
+    public ReflectionHelper getReflectionHelper()    {
+        return reflectionHelper;
+    }
+
+
     /**
      * Provides a rule instance that should be applied when a "media"
      * declaration is found in the schema.
@@ -372,6 +423,10 @@ public class RuleFactory {
      */
     public Rule<JDefinedClass, JDefinedClass> getDynamicPropertiesRule() {
         return new DynamicPropertiesRule(this);
+    }
+
+    public Rule<JDefinedClass, JDefinedClass> getBuilderRule(){
+        return new BuilderRule(this, reflectionHelper);
     }
 
     public Rule<JDocCommentable, JDocComment> getJavaNameRule() {

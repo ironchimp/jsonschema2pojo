@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,11 +40,10 @@ import javax.tools.DiagnosticListener;
 import javax.tools.JavaCompiler;
 import javax.tools.JavaFileObject;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
-import org.fest.util.Lists;
-import org.fest.util.Strings;
 import org.jsonschema2pojo.maven.Jsonschema2PojoMojo;
 import org.jsonschema2pojo.util.URLUtil;
 
@@ -102,9 +101,7 @@ public class CodeGenerationHelper {
             });
 
             pluginMojo.execute();
-        } catch (MojoExecutionException e) {
-            throw new RuntimeException(e);
-        } catch (DependencyResolutionRequiredException e) {
+        } catch (MojoExecutionException | DependencyResolutionRequiredException e) {
             throw new RuntimeException(e);
         }
 
@@ -128,12 +125,12 @@ public class CodeGenerationHelper {
      */
     public static ClassLoader compile(File sourceDirectory) {
 
-        return compile(sourceDirectory, new ArrayList<File>(), new HashMap<String, Object>());
+        return compile(sourceDirectory, new ArrayList<>(), new HashMap<>());
 
     }
     
     public static ClassLoader compile(File sourceDirectory, List<File> classpath ) {
-        return compile(sourceDirectory, classpath, new HashMap<String, Object>());
+        return compile(sourceDirectory, classpath, new HashMap<>());
     }
 
     public static ClassLoader compile(File sourceDirectory, List<File> classpath, Map<String, Object> config) {
@@ -146,7 +143,7 @@ public class CodeGenerationHelper {
 
     public static ClassLoader compile(JavaCompiler compiler, Writer out, File sourceDirectory, File outputDirectory, List<File> classpath, Map<String, Object> config, DiagnosticListener<? super JavaFileObject> listener) {
 
-        List<File> fullClasspath = new ArrayList<File>();
+        List<File> fullClasspath = new ArrayList<>();
         fullClasspath.addAll(classpath);
         fullClasspath.addAll(CodeGenerationHelper.classpathToFileArray(System.getProperty("java.class.path")));
 
@@ -177,7 +174,7 @@ public class CodeGenerationHelper {
 
         File outputDirectory = generate(schema, targetPackage, configValues);
 
-        return compile(outputDirectory, new ArrayList<File>(), configValues);
+        return compile(outputDirectory, new ArrayList<>(), configValues);
 
     }
 
@@ -193,7 +190,7 @@ public class CodeGenerationHelper {
 
         File outputDirectory = generate(schema, targetPackage, configValues);
 
-        return compile(outputDirectory, new ArrayList<File>(), configValues);
+        return compile(outputDirectory, new ArrayList<>(), configValues);
 
     }
 
@@ -240,7 +237,7 @@ public class CodeGenerationHelper {
             throw new IllegalArgumentException("Invalid config, uneven list of key/value pairs!");
         }
 
-        Map<String, Object> values = new HashMap<String, Object>();
+        Map<String, Object> values = new HashMap<>();
         for (int i = 0; i < keyValuePairs.length; i = i + 2) {
             values.put(keyValuePairs[i].toString(), keyValuePairs[i + 1]);
         }
@@ -249,13 +246,13 @@ public class CodeGenerationHelper {
     }
 
     private static List<File> classpathToFileArray( String classpath ) {
-        List<File> files = Lists.newArrayList();
+        List<File> files = new ArrayList();
         
-        if( Strings.isNullOrEmpty(classpath)) return files;
+        if (StringUtils.isEmpty(classpath)) return files;
         
         String[] paths = classpath.split(Pattern.quote(File.pathSeparator));
-        for( String path : paths ) {
-            if( Strings.isNullOrEmpty(classpath) ) continue;
+        for ( String path : paths ) {
+            if ( StringUtils.isEmpty(classpath) ) continue;
             files.add(new File(path));
         }
         return files;

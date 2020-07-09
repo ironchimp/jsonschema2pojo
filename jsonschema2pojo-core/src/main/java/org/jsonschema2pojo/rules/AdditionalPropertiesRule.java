@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,11 @@ package org.jsonschema2pojo.rules;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import java.util.Optional;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.stream.StreamSupport;
 
 import org.jsonschema2pojo.Schema;
 
@@ -81,7 +86,7 @@ public class AdditionalPropertiesRule implements Rule<JDefinedClass, JDefinedCla
      * @return the given Java type jclass
      */
     @Override
-    public JDefinedClass apply(String nodeName, JsonNode node, JDefinedClass jclass, Schema schema) {
+    public JDefinedClass apply(String nodeName, JsonNode node, JsonNode parent, JDefinedClass jclass, Schema schema) {
 
         if (node != null && node.isBoolean() && node.asBoolean() == false) {
             // no additional properties allowed
@@ -100,7 +105,7 @@ public class AdditionalPropertiesRule implements Rule<JDefinedClass, JDefinedCla
 
         JType propertyType;
         if (node != null && node.size() != 0) {
-            propertyType = ruleFactory.getSchemaRule().apply(nodeName + "Property", node, jclass, schema);
+            propertyType = ruleFactory.getSchemaRule().apply(nodeName + "Property", node, parent, jclass, schema);
         } else {
             propertyType = jclass.owner().ref(Object.class);
         }
@@ -112,7 +117,7 @@ public class AdditionalPropertiesRule implements Rule<JDefinedClass, JDefinedCla
         addSetter(jclass, propertyType, field);
 
         if (ruleFactory.getGenerationConfig().isIncludeJsr303Annotations()) {
-            ruleFactory.getValidRule().apply(nodeName, node, field, schema);
+            ruleFactory.getValidRule().apply(nodeName, node, parent, field, schema);
         }
 
         if (ruleFactory.getGenerationConfig().isGenerateBuilders()) {
@@ -141,7 +146,7 @@ public class AdditionalPropertiesRule implements Rule<JDefinedClass, JDefinedCla
     private void addSetter(JDefinedClass jclass, JType propertyType, JFieldVar field) {
         JMethod setter = jclass.method(JMod.PUBLIC, void.class, "setAdditionalProperty");
 
-        ruleFactory.getAnnotator().anySetter(setter);
+        ruleFactory.getAnnotator().anySetter(setter, jclass);
 
         JVar nameParam = setter.param(String.class, "name");
         JVar valueParam = setter.param(propertyType, "value");
@@ -154,13 +159,25 @@ public class AdditionalPropertiesRule implements Rule<JDefinedClass, JDefinedCla
     private JMethod addGetter(JDefinedClass jclass, JFieldVar field) {
         JMethod getter = jclass.method(JMod.PUBLIC, field.type(), "getAdditionalProperties");
 
-        ruleFactory.getAnnotator().anyGetter(getter);
+        ruleFactory.getAnnotator().anyGetter(getter, jclass);
 
         getter.body()._return(JExpr._this().ref(field));
         return getter;
     }
 
-    private void addBuilder(JDefinedClass jclass, JType propertyType, JFieldVar field) {
+    private JMethod addBuilder(JDefinedClass jclass, JType propertyType, JFieldVar field) {
+
+        JMethod result = null;
+        if(ruleFactory.getGenerationConfig().isUseInnerClassBuilders()) {
+            result = addInnerBuilder(jclass, propertyType, field);
+        } else {
+            result = addLegacyBuilder(jclass, propertyType, field);
+        }
+
+        return result;
+    }
+
+    private JMethod addLegacyBuilder(JDefinedClass jclass, JType propertyType, JFieldVar field) {
         JMethod builder = jclass.method(JMod.PUBLIC, jclass, "withAdditionalProperty");
 
         JVar nameParam = builder.param(String.class, "name");
@@ -171,6 +188,32 @@ public class AdditionalPropertiesRule implements Rule<JDefinedClass, JDefinedCla
         mapInvocation.arg(nameParam);
         mapInvocation.arg(valueParam);
         body._return(JExpr._this());
+
+        return builder;
+    }
+
+    private JMethod addInnerBuilder(JDefinedClass jclass, JType propertyType, JFieldVar field) {
+        Optional<JDefinedClass> builderClass = StreamSupport
+            .stream(Spliterators.spliteratorUnknownSize(jclass.classes(), Spliterator.ORDERED), false)
+            .filter(definedClass -> definedClass.name().equals(getBuilderClassName(jclass)))
+            .findFirst();
+
+        JMethod builder = builderClass.get().method(JMod.PUBLIC, builderClass.get(), "withAdditionalProperty");
+
+        JVar nameParam = builder.param(String.class, "name");
+        JVar valueParam = builder.param(propertyType, "value");
+
+        JBlock body = builder.body();
+        JInvocation mapInvocation = body.invoke(JExpr.ref(JExpr.cast(jclass, JExpr._this().ref("instance")), field), "put");
+        mapInvocation.arg(nameParam);
+        mapInvocation.arg(valueParam);
+        body._return(JExpr._this());
+
+        return builder;
+    }
+
+    private String getBuilderClassName(JDefinedClass c) {
+        return ruleFactory.getNameHelper().getBaseBuilderClassName(c);
     }
 
 }

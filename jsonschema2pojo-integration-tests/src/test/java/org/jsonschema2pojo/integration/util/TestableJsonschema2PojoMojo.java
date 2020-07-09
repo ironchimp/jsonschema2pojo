@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,11 +48,7 @@ public class TestableJsonschema2PojoMojo extends Jsonschema2PojoMojo {
             field.setAccessible(true);
             field.set(this, value);
 
-        } catch (SecurityException e) {
-            throw new RuntimeException(e);
-        } catch (NoSuchFieldException e) {
-            throw new RuntimeException(e);
-        } catch (IllegalAccessException e) {
+        } catch (SecurityException | IllegalAccessException | NoSuchFieldException e) {
             throw new RuntimeException(e);
         }
 

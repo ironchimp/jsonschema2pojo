@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,16 +21,23 @@ import static org.apache.commons.lang3.StringUtils.*;
 import java.io.File;
 import java.io.FileFilter;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.jsonschema2pojo.AllFileFilter;
 import org.jsonschema2pojo.AnnotationStyle;
 import org.jsonschema2pojo.Annotator;
 import org.jsonschema2pojo.GenerationConfig;
 import org.jsonschema2pojo.InclusionLevel;
+import org.jsonschema2pojo.Language;
 import org.jsonschema2pojo.NoopAnnotator;
+import org.jsonschema2pojo.SourceSortOrder;
 import org.jsonschema2pojo.SourceType;
+import org.jsonschema2pojo.cli.CommandLineLogger.LogLevel;
+import org.jsonschema2pojo.cli.CommandLineLogger.LogLevelValidator;
 import org.jsonschema2pojo.rules.RuleFactory;
 
 import com.beust.jcommander.JCommander;
@@ -58,11 +65,29 @@ public class Arguments implements GenerationConfig {
     @Parameter(names = { "-b", "--generate-builders" }, description = "Generate builder-style methods as well as setters")
     private boolean generateBuilderMethods = false;
 
+    @Parameter(names = { "--include-type-info" }, description = "Include json type info; required to support polymorphic type handling. https://github.com/FasterXML/jackson-docs/wiki/JacksonPolymorphicDeserialization")
+    private boolean includeTypeInfo = false;
+
+    @Parameter(names = { "--use-inner-class-builders" }, description = "Generate an inner class with builder-style methods")
+    private boolean useInnerClassBuilders = false;
+
+    @Parameter(names = { "--include-constructor-properties-annotation" }, description = "Generate ConstructorProperties annotation with parameter names of constructors. (Not Available on Android)")
+    private boolean includeConstructorPropertiesAnnotation = false;
+
     @Parameter(names = { "-c", "--generate-constructors" }, description = "Generate constructors")
     private boolean generateConstructors = false;
 
-    @Parameter(names = { "-r", "--constructors-required-only" }, description = "Generate constructors with only required fields")
+    @Parameter(names = { "-r", "--constructors-required-only" }, description = "Generate only a constructor with only required fields")
     private boolean constructorsRequiredPropertiesOnly = false;
+
+    @Parameter(names = { "--constructors-include-required-properties-constructor" }, description = "Generate a constructor with only required fields")
+    private boolean includeRequiredPropertiesConstructor = false;
+
+    @Parameter(names = { "--constructors-include-all-properties-constructor" }, description = "Generate a constructor with all fields")
+    private boolean includeAllPropertiesConstructor = true;
+
+    @Parameter(names = { "--constructors-include-copy-constructor" }, description = "Generate constructors with a copy oriented parameter")
+    private boolean includeCopyConstructor = false;
 
     @Parameter(names = { "-P", "--use-primitives" }, description = "Use primitives instead of wrapper types for bean properties")
     private boolean usePrimitives = false;
@@ -87,9 +112,15 @@ public class Arguments implements GenerationConfig {
 
     @Parameter(names = { "-S", "--omit-tostring" }, description = "Omit the toString method in the generated Java types")
     private boolean omitToString = false;
+    
+    @Parameter(names = { "-tse", "--tostring-excludes" }, description = "The fields that should be excluded from generated toString methods")
+    private String toStringExcludes = "";
 
     @Parameter(names = { "-a", "--annotation-style" })
     private AnnotationStyle annotationStyle = AnnotationStyle.JACKSON;
+
+    @Parameter(names = { "-ut", "--use-title-as-classname", "When set class names are generated from title attributes rather than property names." })
+    private boolean useTitleAsClassname = false;
 
     @Parameter(names = {"-il", "--inclusion-level"})
     private InclusionLevel inclusionLevel = InclusionLevel.NON_NULL;
@@ -105,6 +136,9 @@ public class Arguments implements GenerationConfig {
 
     @Parameter(names = { "-305", "--jsr305-annotations" }, description = "Add JSR-305 annotations to generated Java types.")
     private boolean includeJsr305Annotations = false;
+
+    @Parameter(names = { "-o", "--use-optional-for-getters"}, description = "Use Optional for getters of non-required fields.")
+    private boolean useOptionalForGetters = false;
 
     @Parameter(names = { "-T", "--source-type" })
     private SourceType sourceType = SourceType.JSONSCHEMA;
@@ -125,15 +159,15 @@ public class Arguments implements GenerationConfig {
     private boolean useJodaLocalTimes = false;
 
     @Parameter(names = { "-dtt", "--datetime-class" }, description = "Specify datetime class")
-    private String dateTimeType = null;
+    private String dateTimeType;
 
     @Parameter(names = { "-tt", "--time-class" }, description = "Specify time class")
-    private String timeType = null;
+    private String timeType;
 
     @Parameter(names = { "-dt", "--date-class" }, description = "Specify date class")
-    private String dateType = null;
+    private String dateType;
 
-    @Parameter(names = { "-c3", "--commons-lang3" }, description = "Whether to use commons-lang 3.x imports instead of commons-lang 2.x imports when adding equals, hashCode and toString methods.")
+    @Parameter(names = { "-c3", "--commons-lang3" }, description = "Deprecated. Please remove it from your command-line arguments.")
     private boolean useCommonsLang3 = false;
 
     @Parameter(names = { "-pl", "--parcelable" }, description = "**EXPERIMENTAL** Whether to make the generated types 'parcelable' (for Android development).")
@@ -157,21 +191,63 @@ public class Arguments implements GenerationConfig {
     @Parameter(names = { "-D", "--enable-additional-properties" }, description = "Enable additional properties support on generated types, regardless of the input schema(s)")
     private boolean isIncludeAdditionalProperties = false;
 
-    @Parameter(names = { "-da", "--disable-accessors" }, description = "Whether to omit getter/setter methods and create public fields instead.")
-    private boolean disableAccessors = false;
+    @Parameter(names = { "-dg", "--disable-getters" }, description = "Whether to omit getter methods and create public fields instead.")
+    private boolean disableGetters = false;
+
+    @Parameter(names = { "-ds", "--disable-setters" }, description = "Whether to omit setter methods and create public fields instead.")
+    private boolean disableSetters = false;
 
     @Parameter(names = { "-tv", "--target-version" }, description = "The target version for generated source files.")
     private String targetVersion = "1.6";
 
     @Parameter(names = { "-ida", "--include-dynamic-accessors" }, description = "Include dynamic getter, setter, and builder support on generated types.")
     private boolean includeDynamicAccessors = false;
-    
-    @Parameter(names = { "-fdt", "--format-date-times" }, description = "Whether the fields of type `date-time` have the `@JsonFormat` annotation with pattern set to the default value of `yyyy-MM-dd'T'HH:mm:ss.SSS` and timezone set to default value of `UTC`")
+
+    @Parameter(names = { "-idg", "--include-dynamic-getters" }, description = "Include dynamic getter support on generated types.")
+    private boolean includeDynamicGetters = false;
+
+    @Parameter(names = { "-ids", "--include-dynamic-setters" }, description = "Include dynamic setter support on generated types.")
+    private boolean includeDynamicSetters = false;
+
+    @Parameter(names = { "-idb", "--include-dynamic-builders" }, description = "Include dynamic builder support on generated types.")
+    private boolean includeDynamicBuilders = false;
+
+    @Parameter(names = { "-fd", "--format-dates" }, description = "Whether the fields of type `date` are formatted during serialization with a default pattern of `yyyy-MM-dd`")
+    private boolean formatDates = false;
+
+    @Parameter(names = { "-ft", "--format-times" }, description = "Whether the fields of type `time` are formatted during serialization with a default pattern of `HH:mm:ss.SSS`")
+    private boolean formatTimes = false;
+
+    @Parameter(names = { "-fdt", "--format-date-times" }, description = "Whether the fields of type `date-time` are formatted during serialization with a default pattern of `yyyy-MM-dd'T'HH:mm:ss.SSSZ` and timezone set to default value of `UTC`")
     private boolean formatDateTimes = false;
+
+    @Parameter(names = { "-dp", "--date-pattern" }, description = "A custom pattern to use when formatting date fields during serialization")
+    private String customDatePattern;
+
+    @Parameter(names = { "-tp", "--time-pattern" }, description = "A custom pattern to use when formatting time fields during serialization")
+    private String customTimePattern;
+
+    @Parameter(names = { "-dtp", "--date-time-pattern" }, description = "A custom pattern to use when formatting date-time fields during serialization")
+    private String customDateTimePattern;
 
     @Parameter(names = {"-rpd", "--ref-fragment-path-delimiters"}, description = "A string containing any characters that should act as path delimiters when resolving $ref fragments. By default, #, / and . are used in an attempt to support JSON Pointer and JSON Path.")
     private String refFragmentPathDelimiters = "#/.";
-    
+
+    @Parameter(names = { "-sso", "--source-sort-order" }, description = "The sort order to be applied to the source files.  Available options are: OS, FILES_FIRST or SUBDIRS_FIRST")
+    private SourceSortOrder sourceSortOrder = SourceSortOrder.OS;
+
+    @Parameter(names = { "-tl", "--target-language" }, description = "The type of code that will be generated.  Available options are: JAVA or SCALA")
+    private Language targetLanguage = Language.JAVA;
+
+    @Parameter(names = { "-ftm", "--format-type-mapping" }, description = "Mapping from format identifier to type: <format>:<fully.qualified.Type>.", variableArity = true)
+    private List<String> formatTypeMapping = new ArrayList<>();
+
+    @Parameter(names = { "-log" }, description = "Configure log level. Defaults to info. Available options are: off, error, warn, info, debug, trace", validateWith = LogLevelValidator.class )
+    private String logLevel = CommandLineLogger.DEFAULT_LOG_LEVEL;
+
+    @Parameter(names = {"--print-log-levels"}, description = "Prints available log levels and exit.")
+    private boolean printLogLevels = false;
+
     private static final int EXIT_OKAY = 0;
     private static final int EXIT_ERROR = 1;
 
@@ -228,6 +304,26 @@ public class Arguments implements GenerationConfig {
     }
 
     @Override
+    public boolean isIncludeTypeInfo()
+    {
+        return includeTypeInfo;
+    }
+
+    public String getLogLevel() {
+        return logLevel;
+    }
+
+    @Override
+    public boolean isUseInnerClassBuilders() {
+        return useInnerClassBuilders;
+    }
+
+    @Override
+    public boolean isIncludeConstructorPropertiesAnnotation() {
+        return includeConstructorPropertiesAnnotation;
+    }
+
+    @Override
     public boolean isUsePrimitives() {
         return usePrimitives;
     }
@@ -258,8 +354,18 @@ public class Arguments implements GenerationConfig {
     }
 
     @Override
+    public String[] getToStringExcludes() {
+        return defaultString(toStringExcludes).split(" ");
+    }
+    
+    @Override
     public AnnotationStyle getAnnotationStyle() {
         return annotationStyle;
+    }
+
+    @Override
+    public boolean isUseTitleAsClassname() {
+        return useTitleAsClassname;
     }
 
     @Override
@@ -286,6 +392,9 @@ public class Arguments implements GenerationConfig {
     public boolean isIncludeJsr305Annotations() {
         return includeJsr305Annotations;
     }
+
+    @Override
+    public boolean isUseOptionalForGetters() { return useOptionalForGetters; }
 
     @Override
     public SourceType getSourceType() {
@@ -317,7 +426,6 @@ public class Arguments implements GenerationConfig {
         return useJodaLocalTimes;
     }
 
-    @Override
     public boolean isUseCommonsLang3() {
         return useCommonsLang3;
     }
@@ -371,14 +479,32 @@ public class Arguments implements GenerationConfig {
         return constructorsRequiredPropertiesOnly;
     }
 
+    public boolean isPrintLogLevels() {
+        return printLogLevels;
+    }
+
+    @Override
+    public boolean isIncludeRequiredPropertiesConstructor() { return includeRequiredPropertiesConstructor; }
+
+    @Override
+    public boolean isIncludeAllPropertiesConstructor() { return includeAllPropertiesConstructor; }
+
+    @Override
+    public boolean isIncludeCopyConstructor() { return includeCopyConstructor; }
+
     @Override
     public boolean isIncludeAdditionalProperties() {
         return isIncludeAdditionalProperties;
     }
 
     @Override
-    public boolean isIncludeAccessors() {
-        return !disableAccessors;
+    public boolean isIncludeGetters() {
+        return !disableGetters;
+    }
+
+    @Override
+    public boolean isIncludeSetters() {
+        return !disableSetters;
     }
 
     @Override
@@ -389,6 +515,21 @@ public class Arguments implements GenerationConfig {
     @Override
     public boolean isIncludeDynamicAccessors() {
         return includeDynamicAccessors;
+    }
+
+    @Override
+    public boolean isIncludeDynamicGetters() {
+        return includeDynamicGetters;
+    }
+
+    @Override
+    public boolean isIncludeDynamicSetters() {
+        return includeDynamicSetters;
+    }
+
+    @Override
+    public boolean isIncludeDynamicBuilders() {
+        return includeDynamicBuilders;
     }
 
     @Override
@@ -422,8 +563,49 @@ public class Arguments implements GenerationConfig {
     }
 
     @Override
+    public boolean isFormatDates() {
+        return formatDates;
+    }
+
+    @Override
+    public boolean isFormatTimes() {
+        return formatTimes;
+    }
+
+    @Override
     public String getRefFragmentPathDelimiters() {
         return refFragmentPathDelimiters;
     }
 
+    @Override
+    public String getCustomDatePattern() {
+        return customDatePattern;
+    }
+
+    @Override
+    public String getCustomTimePattern() {
+        return customTimePattern;
+    }
+
+    @Override
+    public String getCustomDateTimePattern() {
+        return customDateTimePattern;
+    }
+
+    @Override
+    public SourceSortOrder getSourceSortOrder() {
+        return sourceSortOrder;
+    }
+
+    @Override
+    public Language getTargetLanguage() {
+        return targetLanguage;
+    }
+
+    @Override
+    public Map<String, String> getFormatTypeMapping() {
+        return formatTypeMapping
+                .stream()
+                .collect(Collectors.toMap(m -> m.split(":")[0], m -> m.split(":")[1]));
+    }
 }

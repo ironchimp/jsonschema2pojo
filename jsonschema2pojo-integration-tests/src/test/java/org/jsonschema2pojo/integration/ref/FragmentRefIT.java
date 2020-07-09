@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,11 +72,11 @@ public class FragmentRefIT {
         JsonNode schema = new ObjectMapper().readTree("{\"type\":\"object\", \"properties\":{\"a\":{\"$ref\":\"#/b\"}}, \"b\":\"string\"}");
         
         JPackage p = codeModel._package("com.example");
-        new RuleFactory().getSchemaRule().apply("Example", schema, p, new Schema(null, schema, schema));
+        new RuleFactory().getSchemaRule().apply("Example", schema, null, p, new Schema(null, schema, null));
     }
     
     @Test
-    public void refToInnerFragmentThatHasRefToOuterFragmentWithoutParentFile() throws IOException, ClassNotFoundException {
+    public void refToInnerFragmentThatHasRefToOuterFragmentWithoutParentFile() throws IOException {
         JCodeModel codeModel = new JCodeModel();
         JsonNode schema = new ObjectMapper().readTree("{\n" + 
               "    \"type\": \"object\",\n" + 
@@ -101,7 +101,7 @@ public class FragmentRefIT {
               "}");
         
         JPackage p = codeModel._package("com.example");
-        new RuleFactory().getSchemaRule().apply("Example", schema, p, new Schema(null, schema, schema));
+        new RuleFactory().getSchemaRule().apply("Example", schema, null, p, new Schema(null, schema, null));
     }
 
 }

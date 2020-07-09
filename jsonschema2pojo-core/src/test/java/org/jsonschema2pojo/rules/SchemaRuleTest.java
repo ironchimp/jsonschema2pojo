@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.jsonschema2pojo.rules;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 import java.net.URI;
@@ -67,9 +66,9 @@ public class SchemaRuleTest {
         ArgumentCaptor<JsonNode> captureJsonNode = ArgumentCaptor.forClass(JsonNode.class);
         ArgumentCaptor<Schema> captureSchema = ArgumentCaptor.forClass(Schema.class);
 
-        rule.apply(NODE_NAME, schemaWithRef, jclass, null);
+        rule.apply(NODE_NAME, schemaWithRef, null, jclass, null);
 
-        verify(mockTypeRule).apply(eq(NODE_NAME), captureJsonNode.capture(), eq(jclass.getPackage()), captureSchema.capture());
+        verify(mockTypeRule).apply(eq("address"), captureJsonNode.capture(), any(), eq(jclass.getPackage()), captureSchema.capture());
 
         assertThat(captureSchema.getValue().getId(), is(equalTo(schemaUri)));
         assertThat(captureSchema.getValue().getContent(), is(equalTo(captureJsonNode.getValue())));
@@ -78,7 +77,7 @@ public class SchemaRuleTest {
     }
 
     @Test
-    public void enumAsRootIsGeneratedCorrectly() throws URISyntaxException, JClassAlreadyExistsException {
+    public void enumAsRootIsGeneratedCorrectly() throws JClassAlreadyExistsException {
 
         ObjectNode schemaContent = new ObjectMapper().createObjectNode();
         ObjectNode enumNode = schemaContent.objectNode();
@@ -89,16 +88,17 @@ public class SchemaRuleTest {
 
         Schema schema = mock(Schema.class);
         when(schema.getContent()).thenReturn(schemaContent);
+        when(schema.deriveChildSchema(any())).thenReturn(schema);
         schema.setJavaTypeIfEmpty(jclass);
 
         EnumRule enumRule = mock(EnumRule.class);
         when(mockRuleFactory.getEnumRule()).thenReturn(enumRule);
 
-        when(enumRule.apply(NODE_NAME, enumNode, jclass, schema)).thenReturn(jclass);
+        when(enumRule.apply(NODE_NAME, enumNode, null, jclass, schema)).thenReturn(jclass);
 
-        rule.apply(NODE_NAME, schemaContent, jclass, schema);
+        rule.apply(NODE_NAME, schemaContent, null, jclass, schema);
 
-        verify(enumRule).apply(NODE_NAME, schemaContent, jclass, schema);
+        verify(enumRule).apply(NODE_NAME, schemaContent, null, jclass, schema);
         verify(schema, atLeastOnce()).setJavaTypeIfEmpty(jclass);
 
     }
@@ -123,7 +123,7 @@ public class SchemaRuleTest {
         ObjectNode schemaNode = new ObjectMapper().createObjectNode();
         schemaNode.put("$ref", schemaUri.toString());
 
-        JType result = rule.apply(NODE_NAME, schemaNode, null, schema);
+        JType result = rule.apply(NODE_NAME, schemaNode, null,null, schema);
 
         assertThat(result, is(sameInstance(previouslyGeneratedType)));
 

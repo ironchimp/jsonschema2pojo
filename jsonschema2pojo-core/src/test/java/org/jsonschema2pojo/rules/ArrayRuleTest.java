@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,10 @@ public class ArrayRuleTest {
         propertyNode.set("uniqueItems", BooleanNode.TRUE);
         propertyNode.set("items", itemsNode);
 
-        JClass propertyType = rule.apply("fooBars", propertyNode, jpackage, mock(Schema.class));
+        Schema schema = mock(Schema.class);
+        when(schema.deriveChildSchema(any())).thenReturn(schema);
+
+        JClass propertyType = rule.apply("fooBars", propertyNode, null, jpackage, schema);
 
         assertThat(propertyType, notNullValue());
         assertThat(propertyType.erasure(), is(codeModel.ref(Set.class)));
@@ -79,9 +82,10 @@ public class ArrayRuleTest {
 
         Schema schema = mock(Schema.class);
         when(schema.getId()).thenReturn(URI.create("http://example/nonUniqueArray"));
+        when(schema.deriveChildSchema(any())).thenReturn(schema);
         when(config.isUseDoubleNumbers()).thenReturn(true);
 
-        JClass propertyType = rule.apply("fooBars", propertyNode, jpackage, schema);
+        JClass propertyType = rule.apply("fooBars", propertyNode, null, jpackage, schema);
 
         assertThat(propertyType, notNullValue());
         assertThat(propertyType.erasure(), is(codeModel.ref(List.class)));
@@ -104,10 +108,11 @@ public class ArrayRuleTest {
 
         Schema schema = mock(Schema.class);
         when(schema.getId()).thenReturn(URI.create("http://example/nonUniqueArray"));
+        when(schema.deriveChildSchema(any())).thenReturn(schema);
         when(config.isUsePrimitives()).thenReturn(true);
         when(config.isUseDoubleNumbers()).thenReturn(true);
 
-        JClass propertyType = rule.apply("fooBars", propertyNode, jpackage, schema);
+        JClass propertyType = rule.apply("fooBars", propertyNode, null, jpackage, schema);
 
         assertThat(propertyType, notNullValue());
         assertThat(propertyType.erasure(), is(codeModel.ref(List.class)));
@@ -130,8 +135,9 @@ public class ArrayRuleTest {
 
         Schema schema = mock(Schema.class);
         when(schema.getId()).thenReturn(URI.create("http://example/defaultArray"));
+        when(schema.deriveChildSchema(any())).thenReturn(schema);
 
-        JClass propertyType = rule.apply("fooBars", propertyNode, jpackage, schema);
+        JClass propertyType = rule.apply("fooBars", propertyNode, null, jpackage, schema);
 
         assertThat(propertyType.erasure(), is(codeModel.ref(List.class)));
     }

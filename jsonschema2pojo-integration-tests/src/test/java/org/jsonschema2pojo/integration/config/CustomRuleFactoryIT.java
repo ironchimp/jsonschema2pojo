@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2013 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,12 +56,12 @@ public class CustomRuleFactoryIT {
         public Rule<JType, JType> getFormatRule() {
             return new FormatRule(this) {
                 @Override
-                public JType apply(String nodeName, JsonNode node, JType baseType, Schema schema) {
+                public JType apply(String nodeName, JsonNode node, JsonNode parent, JType baseType, Schema schema) {
                     if (node.asText().equals("date")) {
                         return baseType.owner().ref(LocalDate.class);
                     }
 
-                    return super.apply(nodeName, node, baseType, schema);
+                    return super.apply(nodeName, node, parent, baseType, schema);
                 }
             };
         }

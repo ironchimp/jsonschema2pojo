@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.jsonschema2pojo.integration.config;
 
 import static org.hamcrest.Matchers.not;
-import static org.jsonschema2pojo.integration.util.CodeGenerationHelper.config;
 import static org.jsonschema2pojo.integration.util.FileSearchMatcher.*;
 import static org.junit.Assert.assertThat;
 
@@ -27,28 +26,17 @@ import org.jsonschema2pojo.integration.util.Jsonschema2PojoRule;
 import org.junit.Rule;
 import org.junit.Test;
 
-public class CommonsLang3IT {
+public class CommonsLangRemovalIT {
 
     @Rule public Jsonschema2PojoRule schemaRule = new Jsonschema2PojoRule();
 
     @Test
-    public void hashCodeAndEqualsUseCommonsLang2ByDefault() throws ClassNotFoundException, SecurityException, NoSuchMethodException {
+    public void hashCodeAndEqualsDontUseCommonsLang() throws SecurityException {
 
         File generatedOutputDirectory = schemaRule.generate("/schema/properties/primitiveProperties.json", "com.example");
 
         assertThat(generatedOutputDirectory, not(containsText("org.apache.commons.lang3.")));
-        assertThat(generatedOutputDirectory, containsText("org.apache.commons.lang."));
-
-    }
-
-    @Test
-    public void hashCodeAndEqualsUseCommonsLang3() throws ClassNotFoundException, SecurityException, NoSuchMethodException {
-
-        File generatedOutputDirectory = schemaRule.generate("/schema/properties/primitiveProperties.json", "com.example",
-                config("useCommonsLang3", true));
-
         assertThat(generatedOutputDirectory, not(containsText("org.apache.commons.lang.")));
-        assertThat(generatedOutputDirectory, containsText("org.apache.commons.lang3."));
 
     }
 

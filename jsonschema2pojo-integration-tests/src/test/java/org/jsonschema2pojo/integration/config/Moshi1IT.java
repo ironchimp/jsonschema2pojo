@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016 Tobias Preuss
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ public class Moshi1IT {
 
     @Test
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public void annotationStyleMoshi1ProducesMoshi1Annotations() throws ClassNotFoundException, SecurityException, NoSuchMethodException, NoSuchFieldException {
+    public void annotationStyleMoshi1ProducesMoshi1Annotations() throws ClassNotFoundException, SecurityException, NoSuchMethodException {
 
         Class generatedType = schemaRule.generateAndCompile("/json/examples/torrent.json", "com.example",
                 config("annotationStyle", "moshi1",
@@ -66,7 +66,7 @@ public class Moshi1IT {
         assertThat(schemaRule.getGenerateDir(), not(containsText("com.google.gson")));
         assertThat(schemaRule.getGenerateDir(), not(containsText("@SerializedName")));
         assertThat(schemaRule.getGenerateDir(), containsText("com.squareup.moshi"));
-        assertThat(schemaRule.getGenerateDir(), containsText("@Json"));
+        assertThat(schemaRule.getGenerateDir(), containsText("@com.squareup.moshi.Json"));
 
         Method getter = generatedType.getMethod("getBuild");
 
@@ -76,7 +76,7 @@ public class Moshi1IT {
     }
 
     @Test
-    public void annotationStyleMoshi1MakesTypesThatWorkWithMoshi1() throws ClassNotFoundException, SecurityException, NoSuchMethodException, NoSuchFieldException, IOException {
+    public void annotationStyleMoshi1MakesTypesThatWorkWithMoshi1() throws ClassNotFoundException, SecurityException, IOException {
 
         ClassLoader resultsClassLoader = schemaRule.generateAndCompile("/json/examples/", "com.example",
                 config("annotationStyle", "moshi1",

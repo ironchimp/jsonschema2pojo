@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2013 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ import android.os.Parcelable;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(manifest=Config.NONE)
+@Config(manifest=Config.NONE, sdk=23)
 public class ParcelableIT {
 
     @Rule public Jsonschema2PojoRule schemaRule = new Jsonschema2PojoRule();
@@ -55,4 +55,30 @@ public class ParcelableIT {
         assertThat(instance, is(equalTo(unparceledInstance)));
     }
 
+    @Test
+    public void parcelableSuperclassIsUnparceled() throws ClassNotFoundException, IOException {
+        // Explicitly set includeConstructors to false if default value changes in the future
+        Class<?> parcelableType = schemaRule.generateAndCompile("/schema/parcelable/parcelable-superclass-schema.json", "com.example", 
+                config("parcelable", true, "includeConstructors", false))
+                .loadClass("com.example.ParcelableSuperclassSchema");
+
+        Parcelable instance = (Parcelable) new ObjectMapper().readValue(ParcelableIT.class.getResourceAsStream("/schema/parcelable/parcelable-superclass-data.json"), parcelableType);
+        Parcel parcel = parcelableWriteToParcel(instance);
+        Parcelable unparceledInstance = parcelableReadFromParcel(parcel, parcelableType, instance);
+
+        assertThat(instance, is(equalTo(unparceledInstance)));
+    }
+
+    @Test
+    public void parcelableDefaultConstructorDoesNotConflict() throws ClassNotFoundException, IOException {
+        Class<?> parcelableType = schemaRule.generateAndCompile("/schema/parcelable/parcelable-superclass-schema.json", "com.example", 
+                config("parcelable", true, "includeConstructors", true))
+                .loadClass("com.example.ParcelableSuperclassSchema");
+
+        Parcelable instance = (Parcelable) new ObjectMapper().readValue(ParcelableIT.class.getResourceAsStream("/schema/parcelable/parcelable-superclass-data.json"), parcelableType);
+        Parcel parcel = parcelableWriteToParcel(instance);
+        Parcelable unparceledInstance = parcelableReadFromParcel(parcel, parcelableType, instance);
+
+        assertThat(instance, is(equalTo(unparceledInstance)));
+    }
 }

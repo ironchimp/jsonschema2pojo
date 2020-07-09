@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,8 @@ public class RequiredRule implements Rule<JDocCommentable, JDocCommentable> {
      * @param node
      *            the "required" node, having a value <code>true</code> or
      *            <code>false</code>
+     * @param parent
+     *            the parent node
      * @param generatableType
      *            the class or method which may be marked as "required"
      * @return the JavaDoc comment attached to the generatableType, which
@@ -59,7 +61,7 @@ public class RequiredRule implements Rule<JDocCommentable, JDocCommentable> {
      *         required.
      */
     @Override
-    public JDocCommentable apply(String nodeName, JsonNode node, JDocCommentable generatableType, Schema schema) {
+    public JDocCommentable apply(String nodeName, JsonNode node, JsonNode parent, JDocCommentable generatableType, Schema schema) {
 
         if (node.asBoolean()) {
             generatableType.javadoc().append("\n(Required)");

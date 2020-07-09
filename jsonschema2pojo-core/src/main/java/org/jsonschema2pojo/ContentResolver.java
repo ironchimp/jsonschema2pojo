@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,11 @@ import static org.apache.commons.lang3.StringUtils.*;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -37,10 +37,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class ContentResolver {
 
-    private static final Set<String> CLASSPATH_SCHEMES = new HashSet<String>(asList("classpath", "resource", "java"));
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
-            .enable(JsonParser.Feature.ALLOW_COMMENTS)
-            .enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS);
+    private static final Set<String> CLASSPATH_SCHEMES = new HashSet<>(asList("classpath", "resource", "java"));
+    
+    private final ObjectMapper objectMapper;
+
+    public ContentResolver() {
+    	this(null);
+	}
+
+    public ContentResolver(JsonFactory jsonFactory) {
+    	this.objectMapper = new ObjectMapper(jsonFactory)
+                .enable(JsonParser.Feature.ALLOW_COMMENTS)
+                .enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS);
+	}
 
     /**
      * Resolve a given URI to read its contents and parse the result as JSON.
@@ -64,11 +73,9 @@ public class ContentResolver {
         }
 
         try {
-            return OBJECT_MAPPER.readTree(uri.toURL());
+            return objectMapper.readTree(uri.toURL());
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException("Error parsing document: " + uri, e);
-        } catch (MalformedURLException e) {
-            throw new IllegalArgumentException("Unrecognised URI, can't resolve this: " + uri, e);
         } catch (IOException e) {
             throw new IllegalArgumentException("Unrecognised URI, can't resolve this: " + uri, e);
         }
@@ -85,11 +92,9 @@ public class ContentResolver {
         }
 
         try {
-            return OBJECT_MAPPER.readTree(contentAsStream);
+            return objectMapper.readTree(contentAsStream);
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException("Error parsing document: " + uri, e);
-        } catch (MalformedURLException e) {
-            throw new IllegalArgumentException("Unrecognised URI, can't resolve this: " + uri, e);
         } catch (IOException e) {
             throw new IllegalArgumentException("Unrecognised URI, can't resolve this: " + uri, e);
         }

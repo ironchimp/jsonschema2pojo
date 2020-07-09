@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,9 +48,9 @@ public class IncludeAccessorsIT {
     }
 
     @Test
-    public void beansOmitGettersAndSettersWhenAccessorsAreDisabled() throws ClassNotFoundException, SecurityException, NoSuchMethodException, NoSuchFieldException {
+    public void beansOmitGettersAndSettersWhenAccessorsAreDisabled() throws ClassNotFoundException, SecurityException, NoSuchFieldException {
 
-        ClassLoader resultsClassLoader = schemaRule.generateAndCompile("/schema/properties/primitiveProperties.json", "com.example", config("includeAccessors", false));
+        ClassLoader resultsClassLoader = schemaRule.generateAndCompile("/schema/properties/primitiveProperties.json", "com.example", config("includeGetters", false, "includeSetters", false));
 
         Class generatedType = resultsClassLoader.loadClass("com.example.PrimitiveProperties");
 
@@ -62,7 +62,7 @@ public class IncludeAccessorsIT {
 
         try {
             generatedType.getDeclaredMethod("setA", Integer.class);
-            fail("Disabled accessors but getter was generated");
+            fail("Disabled accessors but setter was generated");
         } catch (NoSuchMethodException e) {
         }
 
@@ -71,9 +71,9 @@ public class IncludeAccessorsIT {
     }
 
     @Test
-    public void beansWithoutAccessorsRoundTripJsonCorrectly() throws ClassNotFoundException, SecurityException, NoSuchMethodException, NoSuchFieldException, InstantiationException, IllegalAccessException, IOException {
+    public void beansWithoutAccessorsRoundTripJsonCorrectly() throws ClassNotFoundException, SecurityException, NoSuchFieldException, InstantiationException, IllegalAccessException, IOException {
 
-        ClassLoader resultsClassLoader = schemaRule.generateAndCompile("/schema/properties/primitiveProperties.json", "com.example", config("includeAccessors", false));
+        ClassLoader resultsClassLoader = schemaRule.generateAndCompile("/schema/properties/primitiveProperties.json", "com.example", config("includeGetters", false, "includeSetters", false));
 
         Class generatedType = resultsClassLoader.loadClass("com.example.PrimitiveProperties");
 

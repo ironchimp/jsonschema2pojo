@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ public class DescriptionRuleTest {
         ObjectMapper mapper = new ObjectMapper();
         TextNode descriptionNode = mapper.createObjectNode().textNode("some description");
 
-        JDocComment result = rule.apply("fooBar", descriptionNode, jclass, null);
+        JDocComment result = rule.apply("fooBar", descriptionNode, null, jclass, null);
 
         assertThat(result, sameInstance(jclass.javadoc()));
         assertThat(result.size(), is(1));

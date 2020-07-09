@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,8 +45,8 @@ public class MatchPatternsFileFilter implements FileFilter {
      * <p>Builder for MatchPatternFileFilter instances.</p>
      */
     public static class Builder {
-        List<String> includes = new ArrayList<String>();
-        List<String> excludes = new ArrayList<String>();
+        List<String> includes = new ArrayList<>();
+        List<String> excludes = new ArrayList<>();
         String sourceDirectory;
         boolean caseSensitive;
 
@@ -131,7 +131,7 @@ public class MatchPatternsFileFilter implements FileFilter {
     static List<String> processPatterns(List<String> patterns) {
         if (patterns == null)
             return null;
-        List<String> processed = new ArrayList<String>();
+        List<String> processed = new ArrayList<>();
         for (String pattern : patterns) {
             processed.add(processPattern(pattern));
         }

@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import static org.junit.Assert.*;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.lang.reflect.WildcardType;
 import java.util.Map;
 
 import org.jsonschema2pojo.integration.util.Jsonschema2PojoRule;
@@ -43,7 +44,7 @@ public class GenericTypeIT {
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     @Test
-    public void genericTypeCanBeIncludedInJavaType() throws ClassNotFoundException, NoSuchMethodException, SecurityException {
+    public void genericTypeCanBeIncludedInJavaType() throws NoSuchMethodException, SecurityException {
 
         Method getterMethod = classWithGenericTypes.getMethod("getA");
         assertThat((Class<Map>) getterMethod.getReturnType(), is(equalTo(Map.class)));
@@ -56,7 +57,7 @@ public class GenericTypeIT {
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     @Test
-    public void genericTypeCanBeIncludedWhenTypeObjectIsOmitted() throws ClassNotFoundException, NoSuchMethodException, SecurityException {
+    public void genericTypeCanBeIncludedWhenTypeObjectIsOmitted() throws NoSuchMethodException, SecurityException {
 
         Method getterMethod = classWithGenericTypes.getMethod("getD");
         assertThat((Class<Map>) getterMethod.getReturnType(), is(equalTo(Map.class)));
@@ -69,7 +70,7 @@ public class GenericTypeIT {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Test
-    public void genericTypeInJavaTypeCanBeNested() throws ClassNotFoundException, NoSuchMethodException, SecurityException {
+    public void genericTypeInJavaTypeCanBeNested() throws NoSuchMethodException, SecurityException {
 
         Method getterMethod = classWithGenericTypes.getMethod("getB");
         assertThat((Class<Map>) getterMethod.getReturnType(), is(equalTo(Map.class)));
@@ -87,15 +88,43 @@ public class GenericTypeIT {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Test
-    public void genericTypeInJavaTypeCanIncludeArrays() throws ClassNotFoundException, NoSuchMethodException, SecurityException {
+    public void genericTypeInJavaTypeCanIncludeArrays() throws NoSuchMethodException, SecurityException {
 
         Method getterMethod = classWithGenericTypes.getMethod("getC");
         assertThat((Class<Map>) getterMethod.getReturnType(), is(equalTo(Map.class)));
         assertThat(getterMethod.getGenericReturnType(), is(instanceOf(ParameterizedType.class)));
 
         Type[] typeArguments = ((ParameterizedType) getterMethod.getGenericReturnType()).getActualTypeArguments();
-        assertThat(typeArguments[0], is(equalTo((Type)String.class)));
-        assertThat(typeArguments[1], is(equalTo((Type)String[][].class)));
+        assertThat(typeArguments[0], is(equalTo((Type) String.class)));
+        assertThat(typeArguments[1], is(equalTo((Type) String[][].class)));
+    }
+
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @Test
+    public void genericTypeCanBeWildcard() throws NoSuchMethodException, SecurityException {
+
+        Method getterMethod = classWithGenericTypes.getMethod("getE");
+        assertThat((Class<Map>) getterMethod.getReturnType(), is(equalTo(Map.class)));
+        assertThat(getterMethod.getGenericReturnType(), is(instanceOf(ParameterizedType.class)));
+
+        Type[] typeArguments = ((ParameterizedType) getterMethod.getGenericReturnType()).getActualTypeArguments();
+        assertThat(typeArguments, arrayContaining(is(equalTo((Type) String.class)), is(instanceOf(WildcardType.class))));
+        assertThat(((WildcardType) typeArguments[1]).getUpperBounds(), arrayContaining(is((Type) Object.class)));
+        assertThat(((WildcardType) typeArguments[1]).getLowerBounds(), emptyArray());
+    }
+
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @Test
+    public void genericTypeCanBeExtendsWildcard() throws NoSuchMethodException, SecurityException {
+
+        Method getterMethod = classWithGenericTypes.getMethod("getF");
+        assertThat((Class<Map>) getterMethod.getReturnType(), is(equalTo(Map.class)));
+        assertThat(getterMethod.getGenericReturnType(), is(instanceOf(ParameterizedType.class)));
+
+        Type[] typeArguments = ((ParameterizedType) getterMethod.getGenericReturnType()).getActualTypeArguments();
+        assertThat(typeArguments, arrayContaining(is(equalTo((Type) String.class)), is(instanceOf(WildcardType.class))));
+        assertThat(((WildcardType) typeArguments[1]).getUpperBounds(), arrayContaining(is((Type) Number.class)));
+        assertThat(((WildcardType) typeArguments[1]).getLowerBounds(), emptyArray());
     }
 
 }

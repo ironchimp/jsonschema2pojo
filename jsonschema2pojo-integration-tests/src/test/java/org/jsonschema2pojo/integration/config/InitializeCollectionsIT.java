@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ public class InitializeCollectionsIT {
     }
 
     @Test
-    public void correctResult() throws ClassNotFoundException, IntrospectionException, IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
+    public void correctResult() throws ClassNotFoundException, IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
 
         ClassLoader resultsClassLoader = schemaRule.generateAndCompile("/schema/properties/initializeCollectionProperties.json", "com.example", config);
 

@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package org.jsonschema2pojo.integration;
 
 import static org.hamcrest.Matchers.*;
-import static org.jsonschema2pojo.integration.util.CodeGenerationHelper.config;
+import static org.jsonschema2pojo.integration.util.CodeGenerationHelper.*;
 import static org.junit.Assert.*;
 
 import java.io.File;
@@ -30,11 +30,12 @@ import org.junit.Rule;
 import org.junit.Test;
 
 public class RegressionIT {
+    
     @Rule public Jsonschema2PojoRule schemaRule = new Jsonschema2PojoRule();
 
     @Test
     @SuppressWarnings("rawtypes")
-    public void pathWithSpacesInTheNameDoesNotFail() throws ClassNotFoundException, MalformedURLException {
+    public void pathWithSpacesInTheNameDoesNotFail() throws ClassNotFoundException {
 
         ClassLoader resultsClassLoader = schemaRule.generateAndCompile("/schema/regression/spaces in path.json", "com.example", Collections.<String, Object> emptyMap());
 
@@ -55,7 +56,7 @@ public class RegressionIT {
 
     @Test
     @SuppressWarnings("rawtypes")
-    public void filesWithExtensionPrefixesAreNotTruncated() throws ClassNotFoundException, NoSuchMethodException, SecurityException {
+    public void filesWithExtensionPrefixesAreNotTruncated() throws ClassNotFoundException, SecurityException {
         ClassLoader resultsClassLoader = schemaRule.generateAndCompile("/schema/regression/foo.baz.json", "com.example", Collections.<String, Object> emptyMap());
 
         Class generatedType = resultsClassLoader.loadClass("com.example.FooBaz");
@@ -64,7 +65,7 @@ public class RegressionIT {
 
     @Test
     @SuppressWarnings("rawtypes")
-    public void extendsChoosesCorrectSupertypeWhenTypeIsAlreadyGenerated() throws ClassNotFoundException, NoSuchMethodException, SecurityException, MalformedURLException {
+    public void extendsChoosesCorrectSupertypeWhenTypeIsAlreadyGenerated() throws ClassNotFoundException, SecurityException, MalformedURLException {
         URL filteredSchemaUrl = new File("src/test/resources/schema/regression/extends").toURI().toURL();
 
         ClassLoader resultsClassLoader = schemaRule.generateAndCompile(filteredSchemaUrl, "com.example", Collections.<String, Object> emptyMap());

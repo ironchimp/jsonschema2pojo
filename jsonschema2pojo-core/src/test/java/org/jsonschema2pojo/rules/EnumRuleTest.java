@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,15 +18,15 @@ package org.jsonschema2pojo.rules;
 
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
-import static org.mockito.Matchers.*;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
 import org.jsonschema2pojo.Annotator;
+import org.jsonschema2pojo.RuleLogger;
 import org.jsonschema2pojo.Schema;
 import org.jsonschema2pojo.util.NameHelper;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Matchers;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
@@ -45,12 +45,14 @@ public class EnumRuleTest {
     private Annotator annotator = mock(Annotator.class);
     private RuleFactory ruleFactory = mock(RuleFactory.class);
     private TypeRule typeRule = mock(TypeRule.class);
+    private RuleLogger logger = mock(RuleLogger.class);
 
     private EnumRule rule = new EnumRule(ruleFactory);
 
     @Before
     public void wireUpConfig() {
         when(ruleFactory.getNameHelper()).thenReturn(nameHelper);
+        when(ruleFactory.getLogger()).thenReturn(logger);
         when(ruleFactory.getAnnotator()).thenReturn(annotator);
         when(ruleFactory.getTypeRule()).thenReturn(typeRule);
     }
@@ -58,8 +60,8 @@ public class EnumRuleTest {
     @Test
     public void applyGeneratesUniqueEnumNamesForMultipleEnumNodesWithSameName() {
 
-        Answer<String> firstArgAnswer = new FirstArgAnswer<String>();
-        when(nameHelper.getFieldName(anyString(), any(JsonNode.class))).thenAnswer(firstArgAnswer);
+        Answer<String> firstArgAnswer = new FirstArgAnswer<>();
+        when(nameHelper.getClassName(anyString(), Matchers.any(JsonNode.class))).thenAnswer(firstArgAnswer);
         when(nameHelper.replaceIllegalCharacters(anyString())).thenAnswer(firstArgAnswer);
         when(nameHelper.normalizeName(anyString())).thenAnswer(firstArgAnswer);
 
@@ -74,11 +76,11 @@ public class EnumRuleTest {
         enumNode.set("enum", arrayNode);
 
         // We're always a string for the purposes of this test
-        when(typeRule.apply("status", enumNode, jpackage, schema))
+        when(typeRule.apply("status", enumNode, null, jpackage, schema))
         .thenReturn(jpackage.owner()._ref(String.class));
 
-        JType result1 = rule.apply("status", enumNode, jpackage, schema);
-        JType result2 = rule.apply("status", enumNode, jpackage, schema);
+        JType result1 = rule.apply("status", enumNode, null, jpackage, schema);
+        JType result2 = rule.apply("status", enumNode, null, jpackage, schema);
 
         assertThat(result1.fullName(), is("org.jsonschema2pojo.rules.Status"));
         assertThat(result2.fullName(), is("org.jsonschema2pojo.rules.Status_"));
@@ -87,7 +89,7 @@ public class EnumRuleTest {
     private static class FirstArgAnswer<T> implements Answer<T> {
         @SuppressWarnings("unchecked")
         @Override
-        public T answer(InvocationOnMock invocation) throws Throwable {
+        public T answer(InvocationOnMock invocation) {
             Object[] args = invocation.getArguments();
             //noinspection unchecked
             return (T) args[0];

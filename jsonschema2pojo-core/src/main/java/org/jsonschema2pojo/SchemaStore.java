@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,12 +27,20 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 public class SchemaStore {
 
-    protected Map<URI, Schema> schemas = new HashMap<URI, Schema>();
+    protected final Map<URI, Schema> schemas = new HashMap<>();
 
-    protected FragmentResolver fragmentResolver = new FragmentResolver();
-    protected ContentResolver contentResolver = new ContentResolver();
+    protected final FragmentResolver fragmentResolver = new FragmentResolver();
+    protected final ContentResolver contentResolver;
 
-    /**
+    public SchemaStore() {
+		this.contentResolver = new ContentResolver();
+	}
+
+    public SchemaStore(ContentResolver contentResolver) {
+		this.contentResolver = contentResolver;
+	}
+
+	/**
      * Create or look up a new schema which has the given ID and read the
      * contents of the given ID as a URL. If a schema with the given ID is
      * already known, then a reference to the original schema will be returned.
@@ -45,19 +53,24 @@ public class SchemaStore {
      */
     public synchronized Schema create(URI id, String refFragmentPathDelimiters) {
 
-        if (!schemas.containsKey(id)) {
+        URI normalizedId = id.normalize();
 
-            JsonNode content = contentResolver.resolve(removeFragment(id));
+        if (!schemas.containsKey(normalizedId)) {
 
-            if (id.toString().contains("#")) {
-                JsonNode childContent = fragmentResolver.resolve(content, '#' + id.getFragment(), refFragmentPathDelimiters);
-                schemas.put(id, new Schema(id, childContent, content));
+            URI baseId = removeFragment(id).normalize();
+            JsonNode baseContent = contentResolver.resolve(baseId);
+
+            Schema baseSchema = new Schema(baseId, baseContent, null);
+
+            if (normalizedId.toString().contains("#")) {
+                JsonNode childContent = fragmentResolver.resolve(baseContent, '#' + id.getFragment(), refFragmentPathDelimiters);
+                schemas.put(normalizedId, new Schema(normalizedId, childContent, baseSchema));
             } else {
-                schemas.put(id, new Schema(id, content, content));
+                schemas.put(normalizedId, baseSchema);
             }
         }
 
-        return schemas.get(id);
+        return schemas.get(normalizedId);
     }
 
     protected URI removeFragment(URI id) {
@@ -113,8 +126,10 @@ public class SchemaStore {
         }
 
         if (selfReferenceWithoutParentFile(parent, path) || substringBefore(stringId, "#").isEmpty()) {
-            schemas.put(id, new Schema(id, fragmentResolver.resolve(parent.getParentContent(), path, refFragmentPathDelimiters), parent.getParentContent()));
-            return schemas.get(id);
+            JsonNode parentContent = parent.getParent().getContent();
+            Schema schema = new Schema(id, fragmentResolver.resolve(parentContent, path, refFragmentPathDelimiters), parent.getParent());
+            schemas.put(id, schema);
+            return schema;
         }
 
         return create(id, refFragmentPathDelimiters);

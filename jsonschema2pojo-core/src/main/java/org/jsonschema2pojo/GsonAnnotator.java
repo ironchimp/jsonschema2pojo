@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ public class GsonAnnotator extends AbstractAnnotator {
     }
 
     @Override
-    public void enumConstant(JEnumConstant constant, String value) {
+    public void enumConstant(JDefinedClass _enum, JEnumConstant constant, String value) {
         constant.annotate(SerializedName.class).param("value", value);
     }
 

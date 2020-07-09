@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 
 import org.jsonschema2pojo.InclusionLevel;
 import org.junit.After;
@@ -51,9 +52,9 @@ public class ArgumentsTest {
     @Test
     public void parseRecognisesValidArguments() {
         ArgsForTest args = (ArgsForTest) new ArgsForTest().parse(new String[] {
-                "--source", "/home/source", "--target", "/home/target", "--package", "mypackage",
+                "--source", "/home/source", "--target", "/home/target", "--disable-getters", "--package", "mypackage",
                 "--generate-builders", "--use-primitives", "--omit-hashcode-and-equals", "--omit-tostring", "--include-dynamic-accessors",
-                "--inclusion-level", "ALWAYS"
+                "--include-dynamic-getters", "--include-dynamic-setters", "--include-dynamic-builders", "--inclusion-level", "ALWAYS"
         });
 
         assertThat(args.didExit(), is(false));
@@ -64,14 +65,19 @@ public class ArgumentsTest {
         assertThat(args.isUsePrimitives(), is(true));
         assertThat(args.isIncludeHashcodeAndEquals(), is(false));
         assertThat(args.isIncludeToString(), is(false));
+        assertThat(args.isIncludeGetters(), is(false));
+        assertThat(args.isIncludeSetters(), is(true));
         assertThat(args.isIncludeDynamicAccessors(), is(true));
+        assertThat(args.isIncludeDynamicGetters(), is(true));
+        assertThat(args.isIncludeDynamicSetters(), is(true));
+        assertThat(args.isIncludeDynamicBuilders(), is(true));
         assertThat(args.getInclusionLevel(), is(InclusionLevel.ALWAYS));
     }
 
     @Test
     public void parseRecognisesShorthandArguments() {
         ArgsForTest args = (ArgsForTest) new ArgsForTest().parse(new String[] {
-                "-s", "/home/source", "-t", "/home/target", "-p", "mypackage", "-b", "-P", "-E", "-S", "-ida", "-il", "ALWAYS"
+                "-s", "/home/source", "-t", "/home/target", "-p", "mypackage", "-b", "-P", "-E", "-S", "-ida", "-idg", "-ids", "-idb", "-il", "ALWAYS"
         });
 
         assertThat(args.didExit(), is(false));
@@ -83,6 +89,9 @@ public class ArgumentsTest {
         assertThat(args.isIncludeHashcodeAndEquals(), is(false));
         assertThat(args.isIncludeToString(), is(false));
         assertThat(args.isIncludeDynamicAccessors(), is(true));
+        assertThat(args.isIncludeDynamicGetters(), is(true));
+        assertThat(args.isIncludeDynamicSetters(), is(true));
+        assertThat(args.isIncludeDynamicBuilders(), is(true));
         assertThat(args.getInclusionLevel(), is(InclusionLevel.ALWAYS));
     }
 
@@ -109,7 +118,12 @@ public class ArgumentsTest {
         assertThat(args.isUsePrimitives(), is(false));
         assertThat(args.isIncludeHashcodeAndEquals(), is(true));
         assertThat(args.isIncludeToString(), is(true));
+        assertThat(args.isIncludeGetters(), is(true));
+        assertThat(args.isIncludeSetters(), is(true));
         assertThat(args.isIncludeDynamicAccessors(), is(false));
+        assertThat(args.isIncludeDynamicGetters(), is(false));
+        assertThat(args.isIncludeDynamicSetters(), is(false));
+        assertThat(args.isIncludeDynamicBuilders(), is(false));
     }
 
     @Test
@@ -117,9 +131,9 @@ public class ArgumentsTest {
         ArgsForTest args = (ArgsForTest) new ArgsForTest().parse(new String[] {});
 
         assertThat(args.status, is(1));
-        assertThat(new String(systemErrCapture.toByteArray(), "UTF-8"), is(containsString("--target")));
-        assertThat(new String(systemErrCapture.toByteArray(), "UTF-8"), is(containsString("--source")));
-        assertThat(new String(systemOutCapture.toByteArray(), "UTF-8"), is(containsString("Usage: jsonschema2pojo")));
+        assertThat(new String(systemErrCapture.toByteArray(), StandardCharsets.UTF_8), is(containsString("--target")));
+        assertThat(new String(systemErrCapture.toByteArray(), StandardCharsets.UTF_8), is(containsString("--source")));
+        assertThat(new String(systemOutCapture.toByteArray(), StandardCharsets.UTF_8), is(containsString("Usage: jsonschema2pojo")));
     }
 
     @Test
@@ -127,7 +141,7 @@ public class ArgumentsTest {
         ArgsForTest args = (ArgsForTest) new ArgsForTest().parse(new String[] { "--help" });
 
         assertThat(args.status, is(notNullValue()));
-        assertThat(new String(systemOutCapture.toByteArray(), "UTF-8"), is(containsString("Usage: jsonschema2pojo")));
+        assertThat(new String(systemOutCapture.toByteArray(), StandardCharsets.UTF_8), is(containsString("Usage: jsonschema2pojo")));
     }
 
     private File theFile(String path) {

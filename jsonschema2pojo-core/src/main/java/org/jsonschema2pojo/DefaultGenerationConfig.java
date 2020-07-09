@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,10 @@ package org.jsonschema2pojo;
 import java.io.File;
 import java.io.FileFilter;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.jsonschema2pojo.rules.RuleFactory;
 
@@ -33,6 +36,15 @@ public class DefaultGenerationConfig implements GenerationConfig {
      */
     @Override
     public boolean isGenerateBuilders() {
+        return false;
+    }
+
+    /**
+     * @return <code>false</code>
+     */
+    @Override
+    public boolean isIncludeTypeInfo()
+    {
         return false;
     }
 
@@ -107,6 +119,22 @@ public class DefaultGenerationConfig implements GenerationConfig {
     public boolean isIncludeToString() {
         return true;
     }
+    
+    /**
+     * @return no exclusions
+     */
+    @Override
+    public String[] getToStringExcludes() {
+        return new String[] {};
+    }
+
+    /**
+     * @return {@code false}
+     */
+    @Override
+    public boolean isUseTitleAsClassname() {
+        return false;
+    }
 
     /**
      * @return {@link AnnotationStyle#JACKSON2}
@@ -119,6 +147,7 @@ public class DefaultGenerationConfig implements GenerationConfig {
     /**
      * @return {@link InclusionLevel#NON_NULL}
      */
+    @Override
     public InclusionLevel getInclusionLevel() {
         return InclusionLevel.NON_NULL;
     }
@@ -149,6 +178,9 @@ public class DefaultGenerationConfig implements GenerationConfig {
         return false;
     }
 
+    @Override
+    public boolean isUseOptionalForGetters() { return false; }
+
     /**
      * @return {@link SourceType#JSONSCHEMA}
      */
@@ -162,7 +194,7 @@ public class DefaultGenerationConfig implements GenerationConfig {
      */
     @Override
     public String getOutputEncoding() {
-        return "UTF-8";
+        return StandardCharsets.UTF_8.toString();
     }
 
     /**
@@ -194,14 +226,6 @@ public class DefaultGenerationConfig implements GenerationConfig {
      */
     @Override
     public boolean isUseJodaLocalTimes() {
-        return false;
-    }
-
-    /**
-     * @return <code>false</code>
-     */
-    @Override
-    public boolean isUseCommonsLang3() {
         return false;
     }
 
@@ -282,6 +306,24 @@ public class DefaultGenerationConfig implements GenerationConfig {
     }
 
     /**
+     * @return <code>false</code>
+     */
+    @Override
+    public boolean isIncludeRequiredPropertiesConstructor(){ return false; }
+
+    /**
+     * @return <code>true</code>
+     */
+    @Override
+    public boolean isIncludeAllPropertiesConstructor() { return true; }
+
+    /**
+     * @return <code>false</code>
+     */
+    @Override
+    public boolean isIncludeCopyConstructor() { return false; }
+
+    /**
      * @return <code>true</code>
      */
     @Override
@@ -293,7 +335,15 @@ public class DefaultGenerationConfig implements GenerationConfig {
      * @return <code>true</code>
      */
     @Override
-    public boolean isIncludeAccessors() {
+    public boolean isIncludeGetters() {
+        return true;
+    }
+
+    /**
+     * @return <code>true</code>
+     */
+    @Override
+    public boolean isIncludeSetters() {
         return true;
     }
 
@@ -313,6 +363,30 @@ public class DefaultGenerationConfig implements GenerationConfig {
         return false;
     }
 
+    /**
+     * @return <code>false</code>
+     */
+    @Override
+    public boolean isIncludeDynamicGetters() {
+        return false;
+    }
+
+    /**
+     * @return <code>false</code>
+     */
+    @Override
+    public boolean isIncludeDynamicSetters() {
+        return false;
+    }
+
+    /**
+     * @return <code>false</code>
+     */
+    @Override
+    public boolean isIncludeDynamicBuilders() {
+        return false;
+    }
+
     @Override
     public String getDateTimeType() {
         return null;
@@ -328,10 +402,29 @@ public class DefaultGenerationConfig implements GenerationConfig {
         return null;
     }
 
-   @Override
-   public boolean isFormatDateTimes() {
-      return false;
-   }
+    /**
+     * @return <code>false</code>
+     */
+    @Override
+    public boolean isFormatDateTimes() {
+        return false;
+    }
+
+    /**
+     * @return <code>false</code>
+     */
+    @Override
+    public boolean isFormatDates() {
+        return false;
+    }
+
+    /**
+     * @return <code>false</code>
+     */
+    @Override
+    public boolean isFormatTimes() {
+        return false;
+    }
 
     /**
      * @return "#/."
@@ -339,5 +432,58 @@ public class DefaultGenerationConfig implements GenerationConfig {
     @Override
     public String getRefFragmentPathDelimiters() {
         return "#/.";
+    }
+
+    @Override
+    public String getCustomDatePattern() {
+        return null;
+    }
+
+    @Override
+    public String getCustomTimePattern() {
+        return null;
+    }
+
+    @Override
+    public String getCustomDateTimePattern() {
+        return null;
+    }
+
+    /**
+     * @return {@link SourceSortOrder#OS}
+     */
+    @Override
+    public SourceSortOrder getSourceSortOrder() {
+        return SourceSortOrder.OS;
+    }
+    
+    /**
+     * @return {@link Language#JAVA}
+     */
+    @Override
+    public Language getTargetLanguage() {
+        return Language.JAVA;
+    }
+
+    /**
+     * @return {@link Collections#emptyMap}
+     */
+    @Override
+    public Map<String, String> getFormatTypeMapping() {
+        return Collections.emptyMap();
+    }
+
+    /**
+     * @return <code>false</code>
+     */
+    @Override
+    public boolean isUseInnerClassBuilders() { return false; }
+
+    /**
+     * @return <code>false</code>
+     */
+    @Override
+    public boolean isIncludeConstructorPropertiesAnnotation() {
+        return false;
     }
 }

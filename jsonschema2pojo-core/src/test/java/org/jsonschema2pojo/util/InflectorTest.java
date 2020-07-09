@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,7 +61,14 @@ public class InflectorTest {
         assertThat(Inflector.getInstance().singularize("s"), is("s"));
         assertThat(Inflector.getInstance().singularize("status"), is("status"));
         assertThat(Inflector.getInstance().singularize("statuses"), is("status"));
+        assertThat(Inflector.getInstance().singularize("LineItemTaxes"), is("LineItemTax"));
+        assertThat(Inflector.getInstance().singularize("WidgetList"), is("Widget"));
 
+        assertThat(Inflector.getInstance().singularize("slaves"), is("slave"));
+    }
+
+    @Test
+    public void testPluralize() {
         assertThat(Inflector.getInstance().pluralize("mattress"), is("mattresses"));
         assertThat(Inflector.getInstance().pluralize("address"), is("addresses"));
 

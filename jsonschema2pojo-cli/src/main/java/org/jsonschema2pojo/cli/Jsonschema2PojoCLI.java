@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,11 +42,18 @@ public final class Jsonschema2PojoCLI {
      *             specified
      */
     public static void main(String[] args) throws IOException {
-
         Arguments arguments = new Arguments().parse(args);
+        CommandLineLogger logger = new CommandLineLogger(arguments.getLogLevel());
 
-        Jsonschema2Pojo.generate(arguments);
+        if (arguments.isPrintLogLevels()) {
+            logger.printLogLevels();
+            arguments.exit(0);
+        }
+
+        if (arguments.isUseCommonsLang3()) {
+            logger.warn("--commons-lang3 is deprecated. Please remove the argument from your command-line arguments.");
+        }
+
+        Jsonschema2Pojo.generate(arguments, logger);
     }
-
-
 }

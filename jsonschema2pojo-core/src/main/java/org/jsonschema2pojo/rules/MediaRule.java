@@ -1,5 +1,5 @@
 /**
- * Copyright ¬© 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,6 @@ public class MediaRule implements Rule<JType, JType> {
      * Constructs a new media rule.
      * </p>
      *
-     * @param ruleFactory the rule factory that created this rule.
      * @since 0.4.2
      */
     protected MediaRule() {
@@ -56,6 +55,8 @@ public class MediaRule implements Rule<JType, JType> {
      *            the name of the property.
      * @param mediaNode
      *            the media node
+     * @param parent
+     *            the parent node
      * @param baseType
      *            the type with the media node.  This must be java.lang.String.
      * @param schema
@@ -64,7 +65,7 @@ public class MediaRule implements Rule<JType, JType> {
      * @since 0.4.2
      */
     @Override
-    public JType apply(String nodeName, JsonNode mediaNode, JType baseType, Schema schema) {
+    public JType apply(String nodeName, JsonNode mediaNode, JsonNode parent, JType baseType, Schema schema) {
         if (!mediaNode.has(BINARY_ENCODING)) {
             return baseType;
         }

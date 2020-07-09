@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.jsonschema2pojo.rules;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.apache.commons.lang3.StringUtils;
 import org.jsonschema2pojo.Schema;
 import com.sun.codemodel.JDocComment;
 import com.sun.codemodel.JDocCommentable;
@@ -42,16 +43,27 @@ public class DescriptionRule implements Rule<JDocCommentable, JDocComment> {
      *            the name of the object to which this description applies
      * @param node
      *            the "description" schema node
+     * @param parent
+     *            the parent node
      * @param generatableType
      *            comment-able code generation construct, usually a java class,
      *            which should have this description applied
      * @return the JavaDoc comment created to contain the description
      */
     @Override
-    public JDocComment apply(String nodeName, JsonNode node, JDocCommentable generatableType, Schema schema) {
+    public JDocComment apply(String nodeName, JsonNode node, JsonNode parent, JDocCommentable generatableType, Schema schema) {
         JDocComment javadoc = generatableType.javadoc();
 
-        javadoc.append(node.asText());
+        String descriptionText = node.asText();
+
+        if(StringUtils.isNotBlank(descriptionText)) {
+
+            String[] lines = node.asText().split("/\r?\n/");
+
+            for(String line : lines) {
+                javadoc.append(line);
+            }
+        }
 
         return javadoc;
     }

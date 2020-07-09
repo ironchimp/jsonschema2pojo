@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ public class FragmentResolver {
 
     public JsonNode resolve(JsonNode tree, String path, String refFragmentPathDelimiters) {
 
-        return resolve(tree, new ArrayList<String>(asList(split(path, refFragmentPathDelimiters))));
+        return resolve(tree, new ArrayList<>(asList(split(path, refFragmentPathDelimiters))));
 
     }
 

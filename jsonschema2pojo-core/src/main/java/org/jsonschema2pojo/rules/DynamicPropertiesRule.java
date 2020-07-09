@@ -1,5 +1,5 @@
 /**
- * Copyright ¬© 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,6 +83,8 @@ public class DynamicPropertiesRule implements Rule<JDefinedClass, JDefinedClass>
      * @param node
      *            the properties node, containing property names and their
      *            definition
+     * @param parent
+     *            the parent node
      * @param jclass
      *            the Java type which will have the given properties added
      * @param currentSchema
@@ -90,28 +92,45 @@ public class DynamicPropertiesRule implements Rule<JDefinedClass, JDefinedClass>
      * @return the given jclass
      */
     @Override
-    public JDefinedClass apply(String nodeName, JsonNode node, JDefinedClass jclass, Schema currentSchema) {
-        if (!ruleFactory.getGenerationConfig().isIncludeDynamicAccessors()) {
+    public JDefinedClass apply(String nodeName, JsonNode node, JsonNode parent, JDefinedClass jclass, Schema currentSchema) {
+        if (!ruleFactory.getGenerationConfig().isIncludeDynamicAccessors() ||
+                (!ruleFactory.getGenerationConfig().isIncludeDynamicSetters() &&
+                !ruleFactory.getGenerationConfig().isIncludeDynamicGetters() &&
+                !ruleFactory.getGenerationConfig().isIncludeDynamicBuilders())) {
             return jclass;
         }
 
-        if (ruleFactory.getGenerationConfig().isIncludeAccessors() ||
-                ruleFactory.getGenerationConfig().isGenerateBuilders()) {
+        boolean isIncludeGetters = ruleFactory.getGenerationConfig().isIncludeGetters();
+        boolean isIncludeSetters = ruleFactory.getGenerationConfig().isIncludeSetters();
+        boolean isGenerateBuilders = ruleFactory.getGenerationConfig().isGenerateBuilders();
+
+        if (isIncludeGetters || isIncludeSetters || isGenerateBuilders) {
             if (LanguageFeatures.canUseJava7(ruleFactory.getGenerationConfig())) {
-                addInternalSetMethodJava7(jclass, node);
-                addInternalGetMethodJava7(jclass, node);
+                if (isIncludeSetters) {
+                    addInternalSetMethodJava7(jclass, node);
+                }
+                if (isIncludeGetters) {
+                    addInternalGetMethodJava7(jclass, node);
+                }
             } else {
-                addInternalSetMethodJava6(jclass, node);
-                addInternalGetMethodJava6(jclass, node);
+                if (isIncludeSetters) {
+                    addInternalSetMethodJava6(jclass, node);
+                }
+                if (isIncludeGetters) {
+                    addInternalGetMethodJava6(jclass, node);
+                }
             }
         }
 
-        if (ruleFactory.getGenerationConfig().isIncludeAccessors()) {
+        if (isIncludeGetters) {
             addGetMethods(jclass);
+        }
+
+        if (isIncludeSetters) {
             addSetMethods(jclass);
         }
 
-        if (ruleFactory.getGenerationConfig().isGenerateBuilders()) {
+        if (isGenerateBuilders) {
             addWithMethods(jclass);
         }
 

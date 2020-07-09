@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -7,7 +7,7 @@
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless optional by applicable law or agreed to in writing, software
+ * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
+import java.net.URL;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -85,7 +86,7 @@ public class FormatIT {
     }
 
     @BeforeClass
-    public static void generateClasses() throws ClassNotFoundException, IOException {
+    public static void generateClasses() throws ClassNotFoundException {
 
         ClassLoader resultsClassLoader = classSchemaRule.generateAndCompile("/schema/format/formattedProperties.json", "com.example");
 
@@ -94,7 +95,7 @@ public class FormatIT {
     }
 
     @Test
-    public void formatValueProducesExpectedType() throws NoSuchMethodException, IntrospectionException {
+    public void formatValueProducesExpectedType() throws IntrospectionException {
 
         Method getter = new PropertyDescriptor(propertyName, classWithFormattedProperties).getReadMethod();
 
@@ -103,7 +104,7 @@ public class FormatIT {
     }
 
     @Test
-    public void valueCanBeSerializedAndDeserialized() throws NoSuchMethodException, IOException, IntrospectionException, IllegalAccessException, InvocationTargetException {
+    public void valueCanBeSerializedAndDeserialized() throws IOException, IntrospectionException, IllegalAccessException, InvocationTargetException {
 
         ObjectMapper objectMapper = new ObjectMapper();
 

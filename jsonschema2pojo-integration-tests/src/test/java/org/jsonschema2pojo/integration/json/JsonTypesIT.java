@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -193,7 +193,7 @@ public class JsonTypesIT {
         assertEquals(Integer.class, genType.getMethod("getScalar").getReturnType());
 
         thrown.expect(InvalidFormatException.class);
-        thrown.expectMessage("Can not construct instance of java.lang.Integer from String value (\"what\")");
+        thrown.expectMessage(startsWith("Cannot deserialize value of type `java.lang.Integer` from String \"what\": not a valid Integer value"));
         OBJECT_MAPPER.readValue(this.getClass().getResourceAsStream("/json/simplePropertiesInArrayItem.json"), Array.newInstance(genType, 0).getClass());
     }
 

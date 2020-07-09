@@ -1,12 +1,12 @@
 /**
- * Copyright © 2010-2014 Nokia
- * <p>
+ * Copyright © 2010-2020 Nokia
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -56,6 +56,8 @@ public class NotRequiredRule implements Rule<JDocCommentable, JDocCommentable> {
      * @param node
      *            the "not required" node, having a value <code>false</code> or
      *            <code>no value</code>
+     * @param parent
+     *            the parent node
      * @param generatableType
      *            the class or method which may be marked as "not required"
      * @return the JavaDoc comment attached to the generatableType, which
@@ -63,7 +65,7 @@ public class NotRequiredRule implements Rule<JDocCommentable, JDocCommentable> {
      *         not required.
      */
     @Override
-    public JDocCommentable apply(String nodeName, JsonNode node, JDocCommentable generatableType, Schema schema) {
+    public JDocCommentable apply(String nodeName, JsonNode node, JsonNode parent, JDocCommentable generatableType, Schema schema) {
 
         // Since NotRequiredRule is executed for all fields that do not have "required" present,
         // we need to recognize whether the field is part of the RequiredArrayRule.

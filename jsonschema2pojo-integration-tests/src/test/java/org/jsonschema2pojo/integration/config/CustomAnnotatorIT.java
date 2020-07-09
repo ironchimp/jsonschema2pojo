@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package org.jsonschema2pojo.integration.config;
 
 import static org.hamcrest.Matchers.*;
-import static org.jsonschema2pojo.integration.util.CodeGenerationHelper.config;
+import static org.jsonschema2pojo.integration.util.CodeGenerationHelper.*;
 import static org.junit.Assert.*;
 
 import java.lang.reflect.Method;
@@ -112,6 +112,11 @@ public class CustomAnnotatorIT {
     public static class DeprecatingAnnotator implements Annotator {
 
         @Override
+        public void typeInfo(JDefinedClass clazz, JsonNode schema) {
+
+        }
+
+        @Override
         public void propertyOrder(JDefinedClass clazz, JsonNode propertiesNode) {
             clazz.annotate(Deprecated.class);
         }
@@ -126,37 +131,37 @@ public class CustomAnnotatorIT {
         }
 
         @Override
-        public void propertyGetter(JMethod getter, String propertyName) {
+        public void propertyGetter(JMethod getter, JDefinedClass clazz, String propertyName) {
             getter.annotate(Deprecated.class);
         }
 
         @Override
-        public void propertySetter(JMethod setter, String propertyName) {
+        public void propertySetter(JMethod setter, JDefinedClass clazz, String propertyName) {
             setter.annotate(Deprecated.class);
         }
 
         @Override
-        public void anyGetter(JMethod getter) {
+        public void anyGetter(JMethod getter, JDefinedClass clazz) {
             getter.annotate(Deprecated.class);
         }
 
         @Override
-        public void anySetter(JMethod setter) {
+        public void anySetter(JMethod setter, JDefinedClass clazz) {
             setter.annotate(Deprecated.class);
         }
 
         @Override
-        public void enumCreatorMethod(JMethod creatorMethod) {
+        public void enumCreatorMethod(JDefinedClass _enum, JMethod creatorMethod) {
             creatorMethod.annotate(Deprecated.class);
         }
 
         @Override
-        public void enumValueMethod(JMethod valueMethod) {
+        public void enumValueMethod(JDefinedClass _enum, JMethod valueMethod) {
             valueMethod.annotate(Deprecated.class);
         }
 
         @Override
-        public void enumConstant(JEnumConstant constant, String value) {
+        public void enumConstant(JDefinedClass _enum, JEnumConstant constant, String value) {
             constant.annotate(Deprecated.class);
         }
 
@@ -172,11 +177,25 @@ public class CustomAnnotatorIT {
 
         }
 
-      @Override
-      public void dateField(JFieldVar field, JsonNode propertyNode) {
-         field.annotate(Deprecated.class);
-      }
+        @Override
+        public boolean isPolymorphicDeserializationSupported(JsonNode node) {
+            return false;
+        }
 
+        @Override
+        public void dateField(JFieldVar field, JDefinedClass clazz, JsonNode propertyNode) {
+            field.annotate(Deprecated.class);
+        }
+
+        @Override
+        public void timeField(JFieldVar field, JDefinedClass clazz, JsonNode propertyNode) {
+            field.annotate(Deprecated.class);
+        }
+
+        @Override
+        public void dateTimeField(JFieldVar field, JDefinedClass clazz, JsonNode propertyNode) {
+            field.annotate(Deprecated.class);
+        }
     }
 
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright ¬© 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,8 +71,8 @@ public class Jsonschema2PojoRuleTest {
 
                 return new org.jsonschema2pojo.rules.Rule<JPackage, JType>() {
                     @Override
-                    public JType apply(String nodeName, JsonNode node, JPackage generatableType, Schema currentSchema) {
-                        JType objectType = workingRule.apply(nodeName, node, generatableType, currentSchema);
+                    public JType apply(String nodeName, JsonNode node, JsonNode parent, JPackage generatableType, Schema currentSchema) {
+                        JType objectType = workingRule.apply(nodeName, node, null, generatableType, currentSchema);
                         if( objectType instanceof JDefinedClass ) {
                             JDefinedClass jclass = (JDefinedClass)objectType;
                             jclass.method(JMod.PUBLIC, jclass.owner().BOOLEAN, "brokenMethod").body();

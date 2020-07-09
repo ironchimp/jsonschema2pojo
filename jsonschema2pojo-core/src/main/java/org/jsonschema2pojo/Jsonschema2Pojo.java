@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2014 Nokia
+ * Copyright © 2010-2020 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
@@ -35,6 +36,7 @@ import org.jsonschema2pojo.rules.RuleFactory;
 import org.jsonschema2pojo.util.NameHelper;
 import org.jsonschema2pojo.util.URLUtil;
 
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.sun.codemodel.CodeWriter;
 import com.sun.codemodel.JCodeModel;
 
@@ -51,14 +53,16 @@ public class Jsonschema2Pojo {
      * @throws IOException
      *             if the application is unable to read data from the source
      */
-    public static void generate(GenerationConfig config) throws IOException {
+    public static void generate(GenerationConfig config, RuleLogger logger) throws IOException {
         Annotator annotator = getAnnotator(config);
         RuleFactory ruleFactory = createRuleFactory(config);
 
         ruleFactory.setAnnotator(annotator);
         ruleFactory.setGenerationConfig(config);
+        ruleFactory.setLogger(logger);
+        ruleFactory.setSchemaStore(new SchemaStore(createContentResolver(config)));
 
-        SchemaMapper mapper = new SchemaMapper(ruleFactory, new SchemaGenerator());
+        SchemaMapper mapper = new SchemaMapper(ruleFactory, createSchemaGenerator(config));
 
         JCodeModel codeModel = new JCodeModel();
 
@@ -77,11 +81,33 @@ public class Jsonschema2Pojo {
         }
 
         if (config.getTargetDirectory().exists() || config.getTargetDirectory().mkdirs()) {
-            CodeWriter sourcesWriter = new FileCodeWriterWithEncoding(config.getTargetDirectory(), config.getOutputEncoding());
-            CodeWriter resourcesWriter = new FileCodeWriterWithEncoding(config.getTargetDirectory(), config.getOutputEncoding());
-            codeModel.build(sourcesWriter, resourcesWriter);
+            if (config.getTargetLanguage() == Language.SCALA) {
+                CodeWriter sourcesWriter = new ScalaFileCodeWriter(config.getTargetDirectory(), config.getOutputEncoding());
+                CodeWriter resourcesWriter = new FileCodeWriterWithEncoding(config.getTargetDirectory(), config.getOutputEncoding());
+                codeModel.build(sourcesWriter, resourcesWriter);
+            } else {
+                CodeWriter sourcesWriter = new FileCodeWriterWithEncoding(config.getTargetDirectory(), config.getOutputEncoding());
+                CodeWriter resourcesWriter = new FileCodeWriterWithEncoding(config.getTargetDirectory(), config.getOutputEncoding());
+                codeModel.build(sourcesWriter, resourcesWriter);
+            }
         } else {
             throw new GenerationException("Could not create or access target directory " + config.getTargetDirectory().getAbsolutePath());
+        }
+    }
+    
+    private static ContentResolver createContentResolver(GenerationConfig config) {
+    	if (config.getSourceType() == SourceType.YAMLSCHEMA || config.getSourceType() == SourceType.YAML) {
+    		return new ContentResolver(new YAMLFactory());
+    	} else {
+    		return new ContentResolver();
+    	}
+    }
+
+    private static SchemaGenerator createSchemaGenerator(GenerationConfig config) {
+        if (config.getSourceType() == SourceType.YAMLSCHEMA || config.getSourceType() == SourceType.YAML) {
+            return new SchemaGenerator(new YAMLFactory());
+        } else {
+            return new SchemaGenerator();
         }
     }
 
@@ -102,7 +128,8 @@ public class Jsonschema2Pojo {
     }
 
     private static void generateRecursive(GenerationConfig config, SchemaMapper mapper, JCodeModel codeModel, String packageName, List<File> schemaFiles) throws IOException {
-        Collections.sort(schemaFiles);
+
+        Collections.sort(schemaFiles, config.getSourceSortOrder().getComparator());
 
         for (File child : schemaFiles) {
             if (child.isFile()) {
@@ -141,10 +168,15 @@ public class Jsonschema2Pojo {
         return factory.getAnnotator(factory.getAnnotator(config.getAnnotationStyle()), factory.getAnnotator(config.getCustomAnnotator()));
     }
 
-    private static String getNodeName(URL file, GenerationConfig config) {
+    public static String getNodeName(URL file, GenerationConfig config) {
+        return getNodeName(file.toString(), config);
+    }
+
+    public static String getNodeName(String filePath, GenerationConfig config) {
         try {
-            String fileName = FilenameUtils.getName(URLDecoder.decode(file.toString(), "UTF-8"));
-            String[] extensions = config.getFileExtensions();
+            String fileName = FilenameUtils.getName(URLDecoder.decode(filePath, StandardCharsets.UTF_8.toString()));
+            String[] extensions = config.getFileExtensions() == null ? new String[] {} : config.getFileExtensions();
+            
             boolean extensionRemoved = false;
             for (int i = 0; i < extensions.length; i++) {
                 String extension = extensions[i];
@@ -165,8 +197,8 @@ public class Jsonschema2Pojo {
             }
             return fileName;
         } catch (UnsupportedEncodingException e) {
-            throw new IllegalArgumentException(String.format("Unable to generate node name from URL: %s", file.toString()), e);
+            throw new IllegalArgumentException(String.format("Unable to generate node name from URL: %s", filePath), e);
         }
-
     }
+    
 }
